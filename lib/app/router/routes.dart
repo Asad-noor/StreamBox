@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:streambox/app/design_gallery/design_gallery_page.dart';
 import 'package:streambox/app/shell/app_shell.dart';
 import 'package:streambox/features/details/presentation/pages/content_details_page.dart';
 import 'package:streambox/features/favorites/presentation/pages/favorites_page.dart';
@@ -151,4 +152,25 @@ class HistoryRoute extends GoRouteData with $HistoryRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const HistoryPage();
+}
+
+// -----------------------------------------------------------------------------
+// Development tools
+//
+// Registered unconditionally because the generated route table is static;
+// `appRouter` redirects away from this prefix outside development builds.
+// -----------------------------------------------------------------------------
+
+@TypedGoRoute<DesignGalleryRoute>(path: DesignGalleryRoute.path)
+class DesignGalleryRoute extends GoRouteData with $DesignGalleryRoute {
+  const DesignGalleryRoute();
+
+  /// Everything under this prefix is development-only.
+  static const String devPrefix = '/dev';
+
+  static const String path = '$devPrefix/gallery';
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const DesignGalleryPage();
 }

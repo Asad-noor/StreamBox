@@ -26,6 +26,7 @@ dependencies:
   # Immutable models & serialization
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -46,3 +47,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  fonts:
+    # Inter, SIL Open Font License 1.1 (see assets/fonts/Inter-LICENSE.txt).
+    # A single variable file: weights are applied through the `wght` axis by
+    # AppTypography rather than shipping one binary per weight.
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/InterVariable.ttf

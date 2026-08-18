@@ -42,14 +42,16 @@ class AppShell extends StatelessWidget {
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: _onDestinationSelected,
         destinations: [
-          for (final destination in _destinations)
+          for (final (index, destination) in _destinations.indexed)
             NavigationDestination(
               label: destination.label,
+              tooltip: destination.label,
               icon: Icon(destination.icon),
               selectedIcon: Icon(
                 destination.selectedIcon,
                 color: Theme.of(context).colorScheme.primary,
               ),
+              key: ValueKey('shell-destination-$index'),
             ),
         ],
       ),

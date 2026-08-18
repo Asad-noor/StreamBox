@@ -73,7 +73,7 @@ abstract final class AppTheme {
     outlineVariant: AppColors.divider,
   );
 
-  static const AppBarTheme _appBarTheme = AppBarTheme(
+  static final AppBarTheme _appBarTheme = AppBarTheme(
     backgroundColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
     foregroundColor: AppColors.textPrimary,
@@ -81,14 +81,10 @@ abstract final class AppTheme {
     scrolledUnderElevation: 0,
     centerTitle: false,
     systemOverlayStyle: systemOverlayStyle,
-    titleTextStyle: TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.w700,
-      color: AppColors.textPrimary,
-    ),
+    titleTextStyle: AppTypography.headlineMedium,
   );
 
-  static const NavigationBarThemeData _navigationBarTheme =
+  static final NavigationBarThemeData _navigationBarTheme =
       NavigationBarThemeData(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
@@ -96,7 +92,7 @@ abstract final class AppTheme {
         elevation: 0,
         height: 68,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        iconTheme: WidgetStatePropertyAll(
+        iconTheme: const WidgetStatePropertyAll(
           IconThemeData(size: 24, color: AppColors.textTertiary),
         ),
         labelTextStyle: WidgetStatePropertyAll(

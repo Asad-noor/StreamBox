@@ -11,6 +11,7 @@ List<RouteBase> get $appRoutes => [
   $contentDetailsRoute,
   $playerRoute,
   $historyRoute,
+  $designGalleryRoute,
 ];
 
 RouteBase get $appShellRoute => StatefulShellRouteData.$route(
@@ -211,6 +212,33 @@ mixin $HistoryRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/history');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $designGalleryRoute => GoRouteData.$route(
+  path: '/dev/gallery',
+  hasOverriddenOnExit: false,
+  factory: $DesignGalleryRoute._fromState,
+);
+
+mixin $DesignGalleryRoute on GoRouteData {
+  static DesignGalleryRoute _fromState(GoRouterState state) =>
+      const DesignGalleryRoute();
+
+  @override
+  String get location => GoRouteData.$location('/dev/gallery');
 
   @override
   void go(BuildContext context) => context.go(location);
