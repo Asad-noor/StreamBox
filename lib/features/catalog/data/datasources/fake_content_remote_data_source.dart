@@ -63,6 +63,64 @@ final class FakeContentRemoteDataSource implements ContentRemoteDataSource {
   }
 
   @override
+  Future<ContentDetailsDto> fetchContentDetails(String id) async {
+    await _simulateRequest();
+
+    final match = _catalogue.where((item) => item.id == id).firstOrNull;
+    if (match == null) throw const NotFoundException();
+
+    return ContentDetailsDto(
+      content: match,
+      seasons: match.seasonCount == null
+          ? const []
+          : _buildSeasons(match, match.seasonCount!),
+    );
+  }
+
+  /// Episode counts and titles are derived from the title's identifier so the
+  /// same series always produces the same episodes, in tests and at runtime.
+  List<SeasonDto> _buildSeasons(ContentModel series, int seasonCount) {
+    return [
+      for (var season = 1; season <= seasonCount; season++)
+        SeasonDto(
+          number: season,
+          title: 'Season $season',
+          episodes: [
+            for (var episode = 1; episode <= _episodesPerSeason; episode++)
+              EpisodeDto(
+                id: '${series.id}-s${season}e$episode',
+                number: episode,
+                title: _episodeTitle(season, episode),
+                synopsis: series.synopsis,
+                stillUrl: MediaConstants.backdropUrl(
+                  '${series.id}-s${season}e$episode',
+                ),
+                durationMinutes: series.durationMinutes,
+                streamUrl: MediaConstants.sampleHlsStream,
+              ),
+          ],
+        ),
+    ];
+  }
+
+  static const int _episodesPerSeason = 6;
+
+  /// Offset by season so the same six titles are not repeated verbatim in
+  /// every season.
+  static String _episodeTitle(int season, int episode) {
+    const titles = [
+      'Arrivals',
+      'The Long Way Round',
+      'What the Tide Left',
+      'Small Hours',
+      'Everything Owed',
+      'Last Light',
+    ];
+
+    return titles[(season * 2 + episode - 1) % titles.length];
+  }
+
+  @override
   Future<SearchResultsDto> searchContent({
     required String query,
     required int page,

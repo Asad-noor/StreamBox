@@ -1,6 +1,9 @@
 import 'package:streambox/features/catalog/domain/entities/content.dart';
+import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/content_section.dart';
+import 'package:streambox/features/catalog/domain/entities/episode.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
+import 'package:streambox/features/catalog/domain/entities/season.dart';
 
 /// Hand-built entities for tests.
 ///
@@ -47,3 +50,66 @@ HomeFeed buildHomeFeed({Content? featured, List<ContentSection>? sections}) =>
       featured: featured ?? buildContent(id: 'featured', title: 'Featured'),
       sections: sections ?? [buildSection()],
     );
+
+Episode buildEpisode({
+  String id = 'ep-1',
+  int number = 1,
+  String title = 'Arrivals',
+  String synopsis = 'An episode synopsis.',
+  Duration duration = const Duration(minutes: 47),
+  String? streamUrl = 'https://example.invalid/ep.m3u8',
+}) => Episode(
+  id: id,
+  number: number,
+  title: title,
+  synopsis: synopsis,
+  stillUrl: 'https://example.invalid/$id/still.jpg',
+  duration: duration,
+  streamUrl: streamUrl,
+);
+
+Season buildSeason({
+  int number = 1,
+  String? title,
+  int episodeCount = 3,
+  List<Episode>? episodes,
+}) => Season(
+  number: number,
+  title: title ?? 'Season $number',
+  episodes:
+      episodes ??
+      [
+        for (var index = 1; index <= episodeCount; index++)
+          buildEpisode(
+            id: 's${number}e$index',
+            number: index,
+            title: 'Episode $index',
+          ),
+      ],
+);
+
+/// A movie: no seasons.
+ContentDetails buildMovieDetails({Content? content}) =>
+    ContentDetails(content: content ?? buildContent(id: 'movie-1'));
+
+/// A series with [seasonCount] seasons.
+ContentDetails buildSeriesDetails({
+  Content? content,
+  int seasonCount = 2,
+  List<Season>? seasons,
+}) => ContentDetails(
+  content:
+      content ??
+      buildContent(
+        id: 'series-1',
+        title: 'Harbour Lights',
+        type: ContentType.series,
+        seasonCount: seasonCount,
+      ),
+  seasons:
+      seasons ??
+      [
+        for (var index = 1; index <= seasonCount; index++)
+          buildSeason(number: index),
+      ],
+);

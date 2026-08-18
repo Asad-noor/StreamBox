@@ -164,6 +164,75 @@ void main() {
     });
   });
 
+  group('fetchContentDetails', () {
+    test('returns a movie with no seasons', () async {
+      final details = await source.fetchContentDetails('the-long-descent');
+
+      expect(details.content.title, 'The Long Descent');
+      expect(details.seasons, isEmpty);
+    });
+
+    test('builds one season per declared season count', () async {
+      final details = await source.fetchContentDetails('harbour-lights');
+
+      expect(details.content.seasonCount, 3);
+      expect(details.seasons, hasLength(3));
+      expect(details.seasons.map((season) => season.number), [1, 2, 3]);
+    });
+
+    test('gives every episode a unique, addressable identifier', () async {
+      final details = await source.fetchContentDetails('harbour-lights');
+
+      final ids = [
+        for (final season in details.seasons)
+          for (final episode in season.episodes) episode.id,
+      ];
+
+      expect(ids.toSet(), hasLength(ids.length));
+      expect(ids.first, 'harbour-lights-s1e1');
+    });
+
+    test('numbers episodes from one within each season', () async {
+      final details = await source.fetchContentDetails('harbour-lights');
+
+      for (final season in details.seasons) {
+        expect(
+          season.episodes.map((episode) => episode.number),
+          List.generate(season.episodes.length, (index) => index + 1),
+          reason: 'season ${season.number}',
+        );
+      }
+    });
+
+    test('every episode is playable', () async {
+      final details = await source.fetchContentDetails('harbour-lights');
+
+      expect(
+        details.seasons
+            .expand((season) => season.episodes)
+            .every((episode) => episode.streamUrl != null),
+        isTrue,
+      );
+    });
+
+    test('is deterministic across calls', () async {
+      final first = await source.fetchContentDetails('harbour-lights');
+      final second = await source.fetchContentDetails('harbour-lights');
+
+      expect(
+        first.seasons.map((s) => s.episodes.map((e) => e.title).toList()),
+        second.seasons.map((s) => s.episodes.map((e) => e.title).toList()),
+      );
+    });
+
+    test('throws NotFoundException for an unknown id', () async {
+      expect(
+        () => source.fetchContentDetails('nope'),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+  });
+
   group('fetchHomeFeed', () {
     test('returns a featured title and non-empty sections', () async {
       final feed = await source.fetchHomeFeed();

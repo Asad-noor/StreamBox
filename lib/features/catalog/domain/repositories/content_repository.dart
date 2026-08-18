@@ -1,5 +1,6 @@
 import 'package:streambox/core/result/result.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
+import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 
@@ -17,6 +18,12 @@ abstract interface class ContentRepository {
 
   /// A single title, for the details screen and for resuming playback.
   Future<Result<Content>> getContentById(String id);
+
+  /// The full record for one title, including seasons for a series.
+  ///
+  /// Separate from [getContentById] because it is a heavier payload: rails and
+  /// search only ever need the summary.
+  Future<Result<ContentDetails>> getContentDetails(String id);
 
   /// One page of titles matching [query].
   ///

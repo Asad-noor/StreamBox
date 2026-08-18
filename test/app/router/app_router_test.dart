@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:streambox/app/app.dart';
 import 'package:streambox/app/router/app_router.dart';
 import 'package:streambox/app/router/routes.dart';
+import 'package:streambox/core/riverpod/app_provider_scope.dart';
 import 'package:streambox/features/catalog/data/datasources/fake_content_remote_data_source.dart';
 import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
 import 'package:streambox/features/details/presentation/pages/content_details_page.dart';
@@ -14,6 +15,8 @@ import 'package:streambox/features/home/presentation/pages/home_page.dart';
 import 'package:streambox/features/player/presentation/pages/player_page.dart';
 import 'package:streambox/features/profile/presentation/pages/profile_page.dart';
 import 'package:streambox/features/search/presentation/pages/search_page.dart';
+
+import '../../support/offline_image_http_overrides.dart';
 
 /// Removes the fake source's simulated latency so navigation tests settle
 /// immediately instead of waiting on an artificial delay.
@@ -25,7 +28,9 @@ final _fastCatalogue = [
 
 void main() {
   Future<GoRouter> pumpApp(WidgetTester tester) async {
-    final container = ProviderContainer(overrides: _fastCatalogue);
+    useOfflineImages();
+
+    final container = createAppProviderContainer(overrides: _fastCatalogue);
     addTearDown(container.dispose);
 
     await tester.pumpWidget(

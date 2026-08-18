@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:streambox/core/error/app_exception.dart';
-import 'package:streambox/core/riverpod/retry_policy.dart';
+import 'package:streambox/core/riverpod/app_provider_scope.dart';
 import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 import 'package:streambox/features/search/presentation/providers/search_providers.dart';
@@ -29,8 +29,7 @@ void main() {
   late FakeContentRepository repository;
 
   ProviderContainer buildContainer() {
-    final container = ProviderContainer(
-      retry: noAutomaticRetry,
+    final container = createAppProviderContainer(
       overrides: [contentRepositoryProvider.overrideWithValue(repository)],
     );
     addTearDown(container.dispose);

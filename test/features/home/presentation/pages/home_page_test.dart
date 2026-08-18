@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:streambox/app/theme/app_theme.dart';
 import 'package:streambox/core/error/app_exception.dart';
-import 'package:streambox/core/riverpod/retry_policy.dart';
+import 'package:streambox/core/riverpod/app_provider_scope.dart';
 import 'package:streambox/core/widgets/content/content_card.dart';
 import 'package:streambox/core/widgets/content/hero_banner.dart';
 import 'package:streambox/core/widgets/states/app_empty_view.dart';
@@ -24,8 +24,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(400, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    final container = ProviderContainer(
-      retry: noAutomaticRetry,
+    final container = createAppProviderContainer(
       overrides: [contentRepositoryProvider.overrideWithValue(repository)],
     );
     addTearDown(container.dispose);

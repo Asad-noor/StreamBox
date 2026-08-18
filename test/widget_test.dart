@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:streambox/app/app.dart';
 import 'package:streambox/app/theme/app_colors.dart';
+import 'package:streambox/core/riverpod/app_provider_scope.dart';
 import 'package:streambox/features/catalog/data/datasources/fake_content_remote_data_source.dart';
 import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
 import 'package:streambox/features/home/presentation/pages/home_page.dart';
@@ -18,7 +18,10 @@ void main() {
   group('StreamBoxApp', () {
     testWidgets('boots into the home destination', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(overrides: _fastCatalogue, child: const StreamBoxApp()),
+        AppProviderScope(
+          overrides: _fastCatalogue,
+          child: const StreamBoxApp(),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -27,7 +30,10 @@ void main() {
 
     testWidgets('applies the dark theme', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(overrides: _fastCatalogue, child: const StreamBoxApp()),
+        AppProviderScope(
+          overrides: _fastCatalogue,
+          child: const StreamBoxApp(),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -40,7 +46,10 @@ void main() {
 
     testWidgets('exposes all four primary destinations', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(overrides: _fastCatalogue, child: const StreamBoxApp()),
+        AppProviderScope(
+          overrides: _fastCatalogue,
+          child: const StreamBoxApp(),
+        ),
       );
       await tester.pumpAndSettle();
 

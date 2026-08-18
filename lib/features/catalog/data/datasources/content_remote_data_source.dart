@@ -36,6 +36,48 @@ class SearchResultsDto {
   final int totalCount;
 }
 
+/// One episode as it arrives from the source.
+class EpisodeDto {
+  const EpisodeDto({
+    required this.id,
+    required this.number,
+    required this.title,
+    required this.synopsis,
+    required this.stillUrl,
+    required this.durationMinutes,
+    this.streamUrl,
+  });
+
+  final String id;
+  final int number;
+  final String title;
+  final String synopsis;
+  final String stillUrl;
+  final int durationMinutes;
+  final String? streamUrl;
+}
+
+/// One season as it arrives from the source.
+class SeasonDto {
+  const SeasonDto({
+    required this.number,
+    required this.title,
+    required this.episodes,
+  });
+
+  final int number;
+  final String title;
+  final List<EpisodeDto> episodes;
+}
+
+/// The full record for one title as it arrives from the source.
+class ContentDetailsDto {
+  const ContentDetailsDto({required this.content, required this.seasons});
+
+  final ContentModel content;
+  final List<SeasonDto> seasons;
+}
+
 /// Where catalogue data comes from.
 ///
 /// Implementations throw [AppException] on failure; the repository converts
@@ -45,6 +87,8 @@ abstract interface class ContentRemoteDataSource {
   Future<HomeFeedDto> fetchHomeFeed();
 
   Future<ContentModel> fetchContentById(String id);
+
+  Future<ContentDetailsDto> fetchContentDetails(String id);
 
   Future<SearchResultsDto> searchContent({
     required String query,

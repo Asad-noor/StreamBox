@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart' show Override;
 import 'package:streambox/app/theme/app_theme.dart';
+import 'package:streambox/core/riverpod/app_provider_scope.dart';
 
 /// Pumps [child] inside the real application theme.
 ///
@@ -18,7 +18,7 @@ extension WidgetHarness on WidgetTester {
     addTearDown(() => binding.setSurfaceSize(null));
 
     await pumpWidget(
-      ProviderScope(
+      AppProviderScope(
         overrides: overrides,
         child: MaterialApp(
           theme: AppTheme.dark,

@@ -1,6 +1,7 @@
 import 'package:streambox/core/error/app_exception.dart';
 import 'package:streambox/core/result/result.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
+import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 import 'package:streambox/features/catalog/domain/repositories/content_repository.dart';
@@ -69,6 +70,21 @@ final class FakeContentRepository implements ContentRepository {
     }
 
     return Success(searchResults ?? SearchResults.empty);
+  }
+
+  /// Returned by [getContentDetails].
+  ContentDetails? details;
+
+  /// Every id passed to [getContentDetails], in order.
+  final List<String> detailsCalls = [];
+
+  @override
+  Future<Result<ContentDetails>> getContentDetails(String id) async {
+    detailsCalls.add(id);
+
+    if (failure case final failure?) return Failure(failure);
+
+    return Success(details!);
   }
 
   @override

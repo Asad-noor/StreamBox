@@ -7,6 +7,7 @@ import 'package:streambox/app/router/app_router.dart';
 import 'package:streambox/app/router/routes.dart';
 import 'package:streambox/core/config/app_config.dart';
 import 'package:streambox/core/config/app_config_provider.dart';
+import 'package:streambox/core/riverpod/app_provider_scope.dart';
 import 'package:streambox/features/catalog/data/datasources/fake_content_remote_data_source.dart';
 import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
 import 'package:streambox/features/home/presentation/pages/home_page.dart';
@@ -21,7 +22,7 @@ void main() {
   );
 
   Future<GoRouter> pumpAppOn(WidgetTester tester, Flavor flavor) async {
-    final container = ProviderContainer(
+    final container = createAppProviderContainer(
       overrides: [
         appConfigProvider.overrideWithValue(configFor(flavor)),
         contentRemoteDataSourceProvider.overrideWithValue(

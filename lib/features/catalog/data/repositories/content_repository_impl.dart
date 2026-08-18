@@ -1,9 +1,12 @@
 import 'package:streambox/core/result/result.dart';
 import 'package:streambox/features/catalog/data/datasources/content_remote_data_source.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
+import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/content_section.dart';
+import 'package:streambox/features/catalog/domain/entities/episode.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
+import 'package:streambox/features/catalog/domain/entities/season.dart';
 import 'package:streambox/features/catalog/domain/repositories/content_repository.dart';
 
 /// Decides where catalogue data comes from and converts it into entities.
@@ -66,6 +69,17 @@ final class ContentRepositoryImpl implements ContentRepository {
   }
 
   @override
+  Future<Result<ContentDetails>> getContentDetails(String id) =>
+      Result.guard(() async {
+        final dto = await _remoteDataSource.fetchContentDetails(id);
+
+        return ContentDetails(
+          content: dto.content.toEntity(),
+          seasons: dto.seasons.map(_toSeason).toList(),
+        );
+      });
+
+  @override
   Future<Result<SearchResults>> searchContent({
     required String query,
     int page = 0,
@@ -122,6 +136,22 @@ final class ContentRepositoryImpl implements ContentRepository {
 
     return null;
   }
+
+  Season _toSeason(SeasonDto dto) => Season(
+    number: dto.number,
+    title: dto.title,
+    episodes: dto.episodes.map(_toEpisode).toList(),
+  );
+
+  Episode _toEpisode(EpisodeDto dto) => Episode(
+    id: dto.id,
+    number: dto.number,
+    title: dto.title,
+    synopsis: dto.synopsis,
+    stillUrl: dto.stillUrl,
+    duration: Duration(minutes: dto.durationMinutes),
+    streamUrl: dto.streamUrl,
+  );
 
   HomeFeed _toHomeFeed(HomeFeedDto dto) => HomeFeed(
     featured: dto.featured?.toEntity(),

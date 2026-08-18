@@ -40,6 +40,16 @@ final class _FakeRemoteDataSource implements ContentRemoteDataSource {
     return searchResults!;
   }
 
+  ContentDetailsDto? detailsResult;
+  final List<String> detailsCalls = [];
+
+  @override
+  Future<ContentDetailsDto> fetchContentDetails(String id) async {
+    detailsCalls.add(id);
+    if (failure case final failure?) throw failure;
+    return detailsResult!;
+  }
+
   @override
   Future<ContentModel> fetchContentById(String id) async {
     contentCalls++;
@@ -210,6 +220,87 @@ void main() {
           reason: '"$wire" should map to $kind',
         );
       }
+    });
+  });
+
+  group('getContentDetails', () {
+    setUp(() {
+      remote.detailsResult = ContentDetailsDto(
+        content: buildModel(id: 'series', type: 'series'),
+        seasons: [
+          SeasonDto(
+            number: 1,
+            title: 'Season 1',
+            episodes: [
+              const EpisodeDto(
+                id: 'series-s1e1',
+                number: 1,
+                title: 'Arrivals',
+                synopsis: 'An episode.',
+                stillUrl: 'https://example.invalid/still.jpg',
+                durationMinutes: 47,
+                streamUrl: 'https://example.invalid/ep.m3u8',
+              ),
+            ],
+          ),
+        ],
+      );
+    });
+
+    test('maps content and seasons onto entities', () async {
+      final result = await buildRepository().getContentDetails('series');
+
+      final details = result.valueOrNull!;
+      expect(details.id, 'series');
+      expect(details.content.type, ContentType.series);
+      expect(details.seasons, hasLength(1));
+      expect(details.seasons.single.episodes.single.id, 'series-s1e1');
+    });
+
+    test('converts episode minutes into a Duration', () async {
+      final result = await buildRepository().getContentDetails('series');
+
+      expect(
+        result.valueOrNull?.seasons.single.episodes.single.duration,
+        const Duration(minutes: 47),
+      );
+    });
+
+    test('returns no seasons for a movie', () async {
+      remote.detailsResult = ContentDetailsDto(
+        content: buildModel(id: 'movie'),
+        seasons: const [],
+      );
+
+      final result = await buildRepository().getContentDetails('movie');
+
+      expect(result.valueOrNull?.hasSeasons, isFalse);
+    });
+
+    test('always reaches the source rather than the feed cache', () async {
+      final repository = buildRepository();
+      await repository.getHomeFeed();
+
+      await repository.getContentDetails('series');
+
+      // The cached feed holds summaries only; details must be fetched.
+      expect(remote.detailsCalls, ['series']);
+    });
+
+    test('reports a missing title as a Failure', () async {
+      remote.failure = const NotFoundException();
+
+      final result = await buildRepository().getContentDetails('nope');
+
+      expect(result.errorOrNull, isA<NotFoundException>());
+    });
+
+    test('wraps an unclassified error', () async {
+      remote.failure = StateError('boom');
+
+      final result = await buildRepository().getContentDetails('series');
+
+      expect(result.errorOrNull, isA<UnknownException>());
     });
   });
 
