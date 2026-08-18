@@ -62,6 +62,59 @@ final class FakeContentRemoteDataSource implements ContentRemoteDataSource {
     return match;
   }
 
+  @override
+  Future<SearchResultsDto> searchContent({
+    required String query,
+    required int page,
+    required int pageSize,
+  }) async {
+    await _simulateRequest();
+
+    final matches = _matching(query);
+    final start = page * pageSize;
+
+    if (start >= matches.length) {
+      return SearchResultsDto(
+        items: const [],
+        page: page,
+        hasMore: false,
+        totalCount: matches.length,
+      );
+    }
+
+    final end = (start + pageSize).clamp(start, matches.length);
+
+    return SearchResultsDto(
+      items: matches.sublist(start, end),
+      page: page,
+      hasMore: end < matches.length,
+      totalCount: matches.length,
+    );
+  }
+
+  /// Matches title, genre and synopsis, in that order of preference, so that
+  /// a title match always outranks an incidental word in a description.
+  List<ContentModel> _matching(String query) {
+    final needle = query.trim().toLowerCase();
+    if (needle.isEmpty) return const [];
+
+    final byTitle = <ContentModel>[];
+    final byGenre = <ContentModel>[];
+    final bySynopsis = <ContentModel>[];
+
+    for (final item in _catalogue) {
+      if (item.title.toLowerCase().contains(needle)) {
+        byTitle.add(item);
+      } else if (item.genres.any((g) => g.toLowerCase().contains(needle))) {
+        byGenre.add(item);
+      } else if (item.synopsis.toLowerCase().contains(needle)) {
+        bySynopsis.add(item);
+      }
+    }
+
+    return [...byTitle, ...byGenre, ...bySynopsis];
+  }
+
   Future<void> _simulateRequest() async {
     if (latency > Duration.zero) await Future<void>.delayed(latency);
     if (failure case final failure?) throw failure;

@@ -2,6 +2,7 @@ import 'package:streambox/core/error/app_exception.dart';
 import 'package:streambox/core/result/result.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
+import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 import 'package:streambox/features/catalog/domain/repositories/content_repository.dart';
 
 /// Hand-written stand-in for [ContentRepository].
@@ -10,6 +11,19 @@ import 'package:streambox/features/catalog/domain/repositories/content_repositor
 /// tests read as descriptions of behaviour rather than of a mocking API.
 final class FakeContentRepository implements ContentRepository {
   FakeContentRepository({this.feed, this.failure, this.content});
+
+  /// Returned by [searchContent]. Set [searchPages] instead to exercise
+  /// pagination across several calls.
+  SearchResults? searchResults;
+
+  /// Consumed one entry per [searchContent] call, in order.
+  List<SearchResults>? searchPages;
+
+  /// Every `(query, page)` pair [searchContent] was called with.
+  final List<({String query, int page})> searchCalls = [];
+
+  /// Delays each [searchContent] response, for testing debounce and staleness.
+  Duration searchLatency = Duration.zero;
 
   /// Returned by [getHomeFeed] when [failure] is null.
   HomeFeed? feed;
@@ -34,6 +48,27 @@ final class FakeContentRepository implements ContentRepository {
     if (failure case final failure?) return Failure(failure);
 
     return Success(feed!);
+  }
+
+  @override
+  Future<Result<SearchResults>> searchContent({
+    required String query,
+    int page = 0,
+    int pageSize = 10,
+  }) async {
+    searchCalls.add((query: query, page: page));
+
+    if (searchLatency > Duration.zero) {
+      await Future<void>.delayed(searchLatency);
+    }
+
+    if (failure case final failure?) return Failure(failure);
+
+    if (searchPages case final pages? when pages.isNotEmpty) {
+      return Success(pages.removeAt(0));
+    }
+
+    return Success(searchResults ?? SearchResults.empty);
   }
 
   @override

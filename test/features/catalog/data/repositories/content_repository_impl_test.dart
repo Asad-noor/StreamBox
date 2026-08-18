@@ -6,6 +6,7 @@ import 'package:streambox/features/catalog/data/models/content_model.dart';
 import 'package:streambox/features/catalog/data/repositories/content_repository_impl.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/content_section.dart';
+import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 
 /// Records calls and returns whatever the test sets up.
 final class _FakeRemoteDataSource implements ContentRemoteDataSource {
@@ -15,14 +16,28 @@ final class _FakeRemoteDataSource implements ContentRemoteDataSource {
   ContentModel? content;
   Object? failure;
 
+  SearchResultsDto? searchResults;
+
   int homeFeedCalls = 0;
   int contentCalls = 0;
+  final List<({String query, int page, int pageSize})> searchCalls = [];
 
   @override
   Future<HomeFeedDto> fetchHomeFeed() async {
     homeFeedCalls++;
     if (failure case final failure?) throw failure;
     return feed!;
+  }
+
+  @override
+  Future<SearchResultsDto> searchContent({
+    required String query,
+    required int page,
+    required int pageSize,
+  }) async {
+    searchCalls.add((query: query, page: page, pageSize: pageSize));
+    if (failure case final failure?) throw failure;
+    return searchResults!;
   }
 
   @override
@@ -195,6 +210,89 @@ void main() {
           reason: '"$wire" should map to $kind',
         );
       }
+    });
+  });
+
+  group('searchContent', () {
+    setUp(() {
+      remote.searchResults = SearchResultsDto(
+        items: [
+          buildModel(id: 'a'),
+          buildModel(id: 'b'),
+        ],
+        page: 0,
+        hasMore: true,
+        totalCount: 5,
+      );
+    });
+
+    test('maps the wire format onto entities', () async {
+      final result = await buildRepository().searchContent(query: 'harbour');
+
+      final results = result.valueOrNull!;
+      expect(results.items.map((item) => item.id), ['a', 'b']);
+      expect(results.items.first.duration, const Duration(minutes: 95));
+      expect(results.page, 0);
+      expect(results.hasMore, isTrue);
+      expect(results.totalCount, 5);
+    });
+
+    test('trims the query before sending it', () async {
+      await buildRepository().searchContent(query: '  harbour  ');
+
+      expect(remote.searchCalls.single.query, 'harbour');
+    });
+
+    test('short-circuits a blank query without a request', () async {
+      final repository = buildRepository();
+
+      final blank = await repository.searchContent(query: '');
+      final whitespace = await repository.searchContent(query: '   ');
+
+      expect(remote.searchCalls, isEmpty);
+      expect(blank.valueOrNull, SearchResults.empty);
+      expect(whitespace.valueOrNull?.isEmpty, isTrue);
+    });
+
+    test('passes the requested page and size through', () async {
+      await buildRepository().searchContent(
+        query: 'harbour',
+        page: 2,
+        pageSize: 25,
+      );
+
+      expect(remote.searchCalls.single, (
+        query: 'harbour',
+        page: 2,
+        pageSize: 25,
+      ));
+    });
+
+    test('does not consult the home feed cache', () async {
+      final repository = buildRepository();
+      await repository.getHomeFeed();
+
+      await repository.searchContent(query: 'harbour');
+      await repository.searchContent(query: 'harbour');
+
+      // Search is never cached: both calls must reach the source.
+      expect(remote.searchCalls, hasLength(2));
+    });
+
+    test('reports a failure as a Failure', () async {
+      remote.failure = const NetworkException();
+
+      final result = await buildRepository().searchContent(query: 'harbour');
+
+      expect(result.errorOrNull, isA<NetworkException>());
+    });
+
+    test('wraps an unclassified error', () async {
+      remote.failure = StateError('boom');
+
+      final result = await buildRepository().searchContent(query: 'harbour');
+
+      expect(result.errorOrNull, isA<UnknownException>());
     });
   });
 

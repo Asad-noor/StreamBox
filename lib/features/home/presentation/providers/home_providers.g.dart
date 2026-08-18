@@ -100,7 +100,7 @@ final class HomeFeedNotifierProvider
   HomeFeedNotifier create() => HomeFeedNotifier();
 }
 
-String _$homeFeedNotifierHash() => r'6d08fb780ad6421cb347fde9ca3d94eb2a524f06';
+String _$homeFeedNotifierHash() => r'8de46e4c9736d89bc1e5a397e0ec7154b74affbd';
 
 /// Owns the home screen's feed.
 ///

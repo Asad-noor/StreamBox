@@ -21,6 +21,21 @@ class HomeFeedDto {
   final List<ContentSectionDto> sections;
 }
 
+/// One page of search results as it arrives from the source.
+class SearchResultsDto {
+  const SearchResultsDto({
+    required this.items,
+    required this.page,
+    required this.hasMore,
+    required this.totalCount,
+  });
+
+  final List<ContentModel> items;
+  final int page;
+  final bool hasMore;
+  final int totalCount;
+}
+
 /// Where catalogue data comes from.
 ///
 /// Implementations throw [AppException] on failure; the repository converts
@@ -30,4 +45,10 @@ abstract interface class ContentRemoteDataSource {
   Future<HomeFeedDto> fetchHomeFeed();
 
   Future<ContentModel> fetchContentById(String id);
+
+  Future<SearchResultsDto> searchContent({
+    required String query,
+    required int page,
+    required int pageSize,
+  });
 }

@@ -3,6 +3,7 @@ import 'package:streambox/features/catalog/data/datasources/content_remote_data_
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/content_section.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
+import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 import 'package:streambox/features/catalog/domain/repositories/content_repository.dart';
 
 /// Decides where catalogue data comes from and converts it into entities.
@@ -63,6 +64,38 @@ final class ContentRepositoryImpl implements ContentRepository {
       return model.toEntity();
     });
   }
+
+  @override
+  Future<Result<SearchResults>> searchContent({
+    required String query,
+    int page = 0,
+    int pageSize = defaultSearchPageSize,
+  }) {
+    // A blank query is not a request worth issuing; the UI shows its idle
+    // prompt instead of an empty result set.
+    if (query.trim().isEmpty) {
+      return Future.value(const Success(SearchResults.empty));
+    }
+
+    return Result.guard(() async {
+      final dto = await _remoteDataSource.searchContent(
+        query: query.trim(),
+        page: page,
+        pageSize: pageSize,
+      );
+
+      return SearchResults(
+        items: dto.items.map((model) => model.toEntity()).toList(),
+        page: dto.page,
+        hasMore: dto.hasMore,
+        totalCount: dto.totalCount,
+      );
+    });
+  }
+
+  /// Search results are deliberately not cached: a query is cheap, results
+  /// change with the catalogue, and a stale page is worse than a fresh fetch.
+  static const int defaultSearchPageSize = 10;
 
   HomeFeed? get _freshCachedFeed {
     if (_cachedFeed case final feed?) {
