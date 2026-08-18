@@ -3,19 +3,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:streambox/app/app.dart';
 import 'package:streambox/app/theme/app_colors.dart';
+import 'package:streambox/features/catalog/data/datasources/fake_content_remote_data_source.dart';
+import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
 import 'package:streambox/features/home/presentation/pages/home_page.dart';
+
+/// Removes the fake source's simulated latency.
+final _fastCatalogue = [
+  contentRemoteDataSourceProvider.overrideWithValue(
+    const FakeContentRemoteDataSource(latency: Duration.zero),
+  ),
+];
 
 void main() {
   group('StreamBoxApp', () {
     testWidgets('boots into the home destination', (tester) async {
-      await tester.pumpWidget(const ProviderScope(child: StreamBoxApp()));
+      await tester.pumpWidget(
+        ProviderScope(overrides: _fastCatalogue, child: const StreamBoxApp()),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byType(HomePage), findsOneWidget);
     });
 
     testWidgets('applies the dark theme', (tester) async {
-      await tester.pumpWidget(const ProviderScope(child: StreamBoxApp()));
+      await tester.pumpWidget(
+        ProviderScope(overrides: _fastCatalogue, child: const StreamBoxApp()),
+      );
       await tester.pumpAndSettle();
 
       final theme = Theme.of(tester.element(find.byType(HomePage)));
@@ -26,7 +39,9 @@ void main() {
     });
 
     testWidgets('exposes all four primary destinations', (tester) async {
-      await tester.pumpWidget(const ProviderScope(child: StreamBoxApp()));
+      await tester.pumpWidget(
+        ProviderScope(overrides: _fastCatalogue, child: const StreamBoxApp()),
+      );
       await tester.pumpAndSettle();
 
       expect(find.byType(NavigationBar), findsOneWidget);

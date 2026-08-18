@@ -57,15 +57,30 @@ class ContentRail extends StatelessWidget {
 
   /// Poster height plus the title and subtitle lines below it.
   ///
-  /// Scaled by the user's text setting so the labels are never clipped when
-  /// text is enlarged.
+  /// Derived from the live text theme rather than a fixed constant: a change
+  /// to the type scale would otherwise silently clip every card in the app.
   double _railHeight(BuildContext context) {
-    final scaler = MediaQuery.textScalerOf(context);
     final posterHeight = itemWidth / ContentCard.posterAspectRatio;
 
-    return posterHeight + AppSpacing.xs + scaler.scale(_labelBlockHeight);
+    return posterHeight + AppSpacing.xs + _labelBlockHeight(context);
   }
 
-  /// Two lines of `titleSmall` plus one of `labelSmall`, with their leading.
-  static const double _labelBlockHeight = 54;
+  /// [ContentCard.maxTitleLines] of `titleSmall` above one line of
+  /// `labelSmall`, scaled by the user's text size preference.
+  static double _labelBlockHeight(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final scaler = MediaQuery.textScalerOf(context);
+
+    double lineHeight(TextStyle? style, double fallbackSize) {
+      final fontSize = scaler.scale(style?.fontSize ?? fallbackSize);
+      return fontSize * (style?.height ?? 1.2);
+    }
+
+    final title =
+        lineHeight(textTheme.titleSmall, 14) * ContentCard.maxTitleLines;
+    final subtitle = lineHeight(textTheme.labelSmall, 11);
+
+    // Rounded up: a fractional shortfall still overflows the column.
+    return (title + AppSpacing.xxs + subtitle).ceilToDouble();
+  }
 }

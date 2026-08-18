@@ -27,6 +27,10 @@ class ContentCard extends StatefulWidget {
   /// Standard poster proportion.
   static const double posterAspectRatio = 2 / 3;
 
+  /// Titles wrap to at most this many lines. [ContentRail] reads it to size
+  /// itself, so the two cannot drift apart.
+  static const int maxTitleLines = 2;
+
   final String title;
   final String? imageUrl;
   final String? subtitle;
@@ -76,7 +80,7 @@ class _ContentCardState extends State<ContentCard> {
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   widget.title,
-                  maxLines: 2,
+                  maxLines: ContentCard.maxTitleLines,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.titleSmall,
                 ),

@@ -8,13 +8,14 @@ import 'package:streambox/app/theme/app_theme.dart';
 import 'package:streambox/core/config/app_config_provider.dart';
 import 'package:streambox/core/logging/app_logger.dart';
 import 'package:streambox/core/logging/app_logger_provider.dart';
+import 'package:streambox/core/riverpod/retry_policy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Providers are created here rather than inside `ProviderScope` so that the
   // logger is available to the error handlers installed below.
-  final container = ProviderContainer();
+  final container = ProviderContainer(retry: noAutomaticRetry);
   final logger = container.read(appLoggerProvider);
 
   _installErrorHandlers(logger);

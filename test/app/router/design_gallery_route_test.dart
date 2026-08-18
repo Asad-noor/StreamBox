@@ -7,6 +7,8 @@ import 'package:streambox/app/router/app_router.dart';
 import 'package:streambox/app/router/routes.dart';
 import 'package:streambox/core/config/app_config.dart';
 import 'package:streambox/core/config/app_config_provider.dart';
+import 'package:streambox/features/catalog/data/datasources/fake_content_remote_data_source.dart';
+import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
 import 'package:streambox/features/home/presentation/pages/home_page.dart';
 
 void main() {
@@ -20,7 +22,12 @@ void main() {
 
   Future<GoRouter> pumpAppOn(WidgetTester tester, Flavor flavor) async {
     final container = ProviderContainer(
-      overrides: [appConfigProvider.overrideWithValue(configFor(flavor))],
+      overrides: [
+        appConfigProvider.overrideWithValue(configFor(flavor)),
+        contentRemoteDataSourceProvider.overrideWithValue(
+          const FakeContentRemoteDataSource(latency: Duration.zero),
+        ),
+      ],
     );
     addTearDown(container.dispose);
 
@@ -45,20 +52,18 @@ void main() {
       expect(find.byType(DesignGalleryPage), findsOneWidget);
     });
 
-    testWidgets('redirects to home outside development', (tester) async {
-      for (final flavor in [Flavor.staging, Flavor.production]) {
+    // One app per test: two live GoRouters in a single test collide on the
+    // GlobalKeys backing their navigators.
+    for (final flavor in [Flavor.staging, Flavor.production]) {
+      testWidgets('redirects to home in ${flavor.name}', (tester) async {
         final router = await pumpAppOn(tester, flavor);
 
         router.go(DesignGalleryRoute.path);
         await tester.pumpAndSettle();
 
-        expect(
-          find.byType(DesignGalleryPage),
-          findsNothing,
-          reason: 'gallery must not be reachable in ${flavor.name}',
-        );
+        expect(find.byType(DesignGalleryPage), findsNothing);
         expect(find.byType(HomePage), findsOneWidget);
-      }
-    });
+      });
+    }
   });
 }
