@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:streambox/core/database/database_provider.dart';
 import 'package:streambox/core/error/app_exception.dart';
 import 'package:streambox/core/result/result.dart';
 import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
+import 'package:streambox/features/catalog/domain/entities/content_snapshot.dart';
 import 'package:streambox/features/player/data/engine/video_player_playback_engine.dart';
-import 'package:streambox/features/player/data/repositories/in_memory_playback_progress_repository.dart';
+import 'package:streambox/features/player/data/repositories/drift_playback_progress_repository.dart';
 import 'package:streambox/features/player/domain/engine/playback_engine.dart';
 import 'package:streambox/features/player/domain/entities/playback_progress.dart';
 import 'package:streambox/features/player/domain/entities/playback_state.dart';
@@ -29,7 +31,7 @@ PlaybackEngine playbackEngine(Ref ref, String contentId) {
 /// Where resume points are stored. Phase 7 points this at the database.
 @Riverpod(keepAlive: true)
 PlaybackProgressRepository playbackProgressRepository(Ref ref) =>
-    InMemoryPlaybackProgressRepository();
+    DriftPlaybackProgressRepository(ref.watch(appDatabaseProvider));
 
 /// Drives playback for one title.
 ///
@@ -54,6 +56,10 @@ class PlayerNotifier extends _$PlayerNotifier {
 
   String? _streamUrl;
   Duration _resumeFrom = Duration.zero;
+
+  /// Captured when the title is resolved, so progress writes carry the display
+  /// fields history needs without re-reading the catalogue on every tick.
+  ContentSnapshot? _snapshot;
 
   @override
   PlaybackState build(String contentId) {
@@ -118,6 +124,7 @@ class PlayerNotifier extends _$PlayerNotifier {
         }
 
         _streamUrl = streamUrl;
+        _snapshot = ContentSnapshot.fromContent(value);
         _resumeFrom = await _storedResumePoint(id);
         _lastPersistedPosition = _resumeFrom;
 
@@ -158,16 +165,20 @@ class PlayerNotifier extends _$PlayerNotifier {
     // is what removes a title from Continue Watching.
     if (!movedEnough && !next.isCompleted) return;
 
+    final snapshot = _snapshot;
+    if (snapshot == null) return;
+
     _lastPersistedPosition = next.position;
 
-    final progress = PlaybackProgress(
-      contentId: contentId,
-      position: next.isCompleted ? next.duration : next.position,
-      duration: next.duration,
-      updatedAt: DateTime.now(),
+    await _progressRepository.saveProgress(
+      content: snapshot,
+      progress: PlaybackProgress(
+        contentId: contentId,
+        position: next.isCompleted ? next.duration : next.position,
+        duration: next.duration,
+        updatedAt: DateTime.now(),
+      ),
     );
-
-    await _progressRepository.saveProgress(progress);
   }
 
   PlaybackProgressRepository get _progressRepository =>

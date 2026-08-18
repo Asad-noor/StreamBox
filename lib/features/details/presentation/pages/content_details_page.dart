@@ -23,8 +23,11 @@ class ContentDetailsPage extends ConsumerWidget {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         // Only offered once the record has loaded: favouriting a title that
-        // failed to load would save an identifier the viewer has not seen.
-        actions: [if (value.hasValue) FavoriteButton(contentId: contentId)],
+        // failed to load would save something the viewer has not seen.
+        actions: [
+          if (value.value case final details?)
+            FavoriteButton(content: details.content),
+        ],
       ),
       body: AsyncValueView(
         value: value,

@@ -16,10 +16,14 @@ class HomeFeedView extends StatelessWidget {
     required this.feed,
     required this.onContentTap,
     required this.onWatch,
+    this.resumeFractions = const {},
     super.key,
   });
 
   final HomeFeed feed;
+
+  /// Watched fraction per title, for the Continue Watching rail.
+  final Map<String, double> resumeFractions;
   final void Function(Content content) onContentTap;
   final void Function(Content content) onWatch;
 
@@ -43,8 +47,11 @@ class HomeFeedView extends StatelessWidget {
           itemCount: sections.length,
           separatorBuilder: (context, index) =>
               const SizedBox(height: AppSpacing.sectionGap),
-          itemBuilder: (context, index) =>
-              _Rail(section: sections[index], onContentTap: onContentTap),
+          itemBuilder: (context, index) => _Rail(
+            section: sections[index],
+            onContentTap: onContentTap,
+            resumeFractions: resumeFractions,
+          ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
       ],
@@ -80,10 +87,15 @@ class _Hero extends StatelessWidget {
 }
 
 class _Rail extends StatelessWidget {
-  const _Rail({required this.section, required this.onContentTap});
+  const _Rail({
+    required this.section,
+    required this.onContentTap,
+    required this.resumeFractions,
+  });
 
   final ContentSection section;
   final void Function(Content content) onContentTap;
+  final Map<String, double> resumeFractions;
 
   @override
   Widget build(BuildContext context) {
@@ -102,9 +114,8 @@ class _Rail extends StatelessWidget {
           subtitle: content.isSeries
               ? '${content.seasonCount} seasons'
               : '${content.releaseYear}',
-          // Progress is only meaningful on the resume rail; phase 7 supplies
-          // the real values from persisted playback position.
-          progress: isContinueWatching ? 0 : null,
+          // The resume bar is only meaningful on the Continue Watching rail.
+          progress: isContinueWatching ? resumeFractions[content.id] : null,
           onTap: () => onContentTap(content),
         );
       },

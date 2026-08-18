@@ -28,6 +28,14 @@ dependencies:
   json_annotation: ^4.9.0
   cached_network_image: ^3.4.1
   video_player: ^2.14.0
+  # Local persistence.
+  #
+  # Held below drift 2.32: from there drift_dev requires analyzer 10+, while
+  # custom_lint and riverpod_lint are still capped at analyzer 9. Static
+  # analysis across the whole application is worth more than the two drift
+  # minors, so drift is pinned until custom_lint catches up.
+  drift: '>=2.30.0 <2.32.0'
+  drift_flutter: ^0.2.4
 
 dev_dependencies:
   flutter_test:
@@ -45,6 +53,7 @@ dev_dependencies:
   # Riverpod-specific static analysis
   custom_lint: ^0.8.0
   riverpod_lint: ^3.0.0
+  drift_dev: ">=2.30.0 <2.32.0"
 
 flutter:
   uses-material-design: true

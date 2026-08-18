@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:streambox/app/theme/app_theme.dart';
+import 'package:streambox/core/database/database_provider.dart';
 import 'package:streambox/core/error/app_exception.dart';
 import 'package:streambox/core/riverpod/app_provider_scope.dart';
 import 'package:streambox/core/widgets/states/app_error_view.dart';
@@ -15,6 +16,7 @@ import 'package:streambox/features/favorites/presentation/providers/favorites_pr
 import '../../../../support/content_fixtures.dart';
 import '../../../../support/fake_content_repository.dart';
 import '../../../../support/offline_image_http_overrides.dart';
+import '../../../../support/test_database.dart';
 
 void main() {
   late FakeContentRepository repository;
@@ -28,7 +30,12 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     final container = createAppProviderContainer(
-      overrides: [contentRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        contentRepositoryProvider.overrideWithValue(repository),
+        // Favourites read and write through the database, so the screen needs
+        // an isolated one rather than the real file-backed connection.
+        appDatabaseProvider.overrideWithValue(createTestDatabase()),
+      ],
     );
     addTearDown(container.dispose);
 

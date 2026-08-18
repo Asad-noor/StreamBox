@@ -162,7 +162,7 @@ class _Actions extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        FavoriteButton(contentId: details.id, showLabel: true),
+        FavoriteButton(content: details.content, showLabel: true),
       ],
     );
   }

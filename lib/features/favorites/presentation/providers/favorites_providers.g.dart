@@ -55,9 +55,55 @@ final class FavoritesRepositoryProvider
 }
 
 String _$favoritesRepositoryHash() =>
-    r'3704d62f154f409fa3dc33db43dfc44dc484efdf';
+    r'5ca78189d3a159a98ca7f8a6e07d6bebdf6fb2fa';
 
-/// The set of saved identifiers, kept current by the repository's stream.
+/// The saved titles, newest first.
+
+@ProviderFor(favorites)
+final favoritesProvider = FavoritesProvider._();
+
+/// The saved titles, newest first.
+
+final class FavoritesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<FavoriteEntry>>,
+          List<FavoriteEntry>,
+          Stream<List<FavoriteEntry>>
+        >
+    with
+        $FutureModifier<List<FavoriteEntry>>,
+        $StreamProvider<List<FavoriteEntry>> {
+  /// The saved titles, newest first.
+  FavoritesProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'favoritesProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$favoritesHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<FavoriteEntry>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<FavoriteEntry>> create(Ref ref) {
+    return favorites(ref);
+  }
+}
+
+String _$favoritesHash() => r'2143db5f71d5db3987b8d7fd73b89ec2a58288c0';
+
+/// The saved identifiers, kept current by the database.
 ///
 /// Every screen that cares about favourites watches this one provider, so a
 /// title saved on the details screen appears on the favourites tab with no
@@ -66,7 +112,7 @@ String _$favoritesRepositoryHash() =>
 @ProviderFor(favoriteIds)
 final favoriteIdsProvider = FavoriteIdsProvider._();
 
-/// The set of saved identifiers, kept current by the repository's stream.
+/// The saved identifiers, kept current by the database.
 ///
 /// Every screen that cares about favourites watches this one provider, so a
 /// title saved on the details screen appears on the favourites tab with no
@@ -80,7 +126,7 @@ final class FavoriteIdsProvider
           Stream<Set<String>>
         >
     with $FutureModifier<Set<String>>, $StreamProvider<Set<String>> {
-  /// The set of saved identifiers, kept current by the repository's stream.
+  /// The saved identifiers, kept current by the database.
   ///
   /// Every screen that cares about favourites watches this one provider, so a
   /// title saved on the details screen appears on the favourites tab with no
@@ -114,18 +160,18 @@ final class FavoriteIdsProvider
 String _$favoriteIdsHash() => r'3a639aeeb123e396de8f30f03c8d85a228bae636';
 
 /// Whether one title is saved. Watching this rather than the whole set keeps a
-/// card from rebuilding when an unrelated title is favourited.
+/// button from rebuilding when an unrelated title is favourited.
 
 @ProviderFor(isFavorite)
 final isFavoriteProvider = IsFavoriteFamily._();
 
 /// Whether one title is saved. Watching this rather than the whole set keeps a
-/// card from rebuilding when an unrelated title is favourited.
+/// button from rebuilding when an unrelated title is favourited.
 
 final class IsFavoriteProvider extends $FunctionalProvider<bool, bool, bool>
     with $Provider<bool> {
   /// Whether one title is saved. Watching this rather than the whole set keeps a
-  /// card from rebuilding when an unrelated title is favourited.
+  /// button from rebuilding when an unrelated title is favourited.
   IsFavoriteProvider._({
     required IsFavoriteFamily super.from,
     required String super.argument,
@@ -180,7 +226,7 @@ final class IsFavoriteProvider extends $FunctionalProvider<bool, bool, bool>
 String _$isFavoriteHash() => r'84c186a5a819ca5207dfeb27a2d557e4b5e0a691';
 
 /// Whether one title is saved. Watching this rather than the whole set keeps a
-/// card from rebuilding when an unrelated title is favourited.
+/// button from rebuilding when an unrelated title is favourited.
 
 final class IsFavoriteFamily extends $Family
     with $FunctionalFamilyOverride<bool, String> {
@@ -194,7 +240,7 @@ final class IsFavoriteFamily extends $Family
       );
 
   /// Whether one title is saved. Watching this rather than the whole set keeps a
-  /// card from rebuilding when an unrelated title is favourited.
+  /// button from rebuilding when an unrelated title is favourited.
 
   IsFavoriteProvider call(String contentId) =>
       IsFavoriteProvider._(argument: contentId, from: this);
@@ -205,25 +251,25 @@ final class IsFavoriteFamily extends $Family
 
 /// Applies favourite changes.
 ///
-/// Toggling is optimistic: the repository stream is the source of truth and
-/// updates within a frame, so the button responds immediately. A failed write
-/// is surfaced to the caller, which restores the previous state.
+/// The database stream is the source of truth and re-emits as soon as a write
+/// commits, so the button responds without holding its own copy of the state.
+/// A failed write is surfaced to the caller rather than swallowed.
 
 @ProviderFor(FavoritesController)
 final favoritesControllerProvider = FavoritesControllerProvider._();
 
 /// Applies favourite changes.
 ///
-/// Toggling is optimistic: the repository stream is the source of truth and
-/// updates within a frame, so the button responds immediately. A failed write
-/// is surfaced to the caller, which restores the previous state.
+/// The database stream is the source of truth and re-emits as soon as a write
+/// commits, so the button responds without holding its own copy of the state.
+/// A failed write is surfaced to the caller rather than swallowed.
 final class FavoritesControllerProvider
     extends $NotifierProvider<FavoritesController, void> {
   /// Applies favourite changes.
   ///
-  /// Toggling is optimistic: the repository stream is the source of truth and
-  /// updates within a frame, so the button responds immediately. A failed write
-  /// is surfaced to the caller, which restores the previous state.
+  /// The database stream is the source of truth and re-emits as soon as a write
+  /// commits, so the button responds without holding its own copy of the state.
+  /// A failed write is surfaced to the caller rather than swallowed.
   FavoritesControllerProvider._()
     : super(
         from: null,
@@ -252,13 +298,13 @@ final class FavoritesControllerProvider
 }
 
 String _$favoritesControllerHash() =>
-    r'72acd45322de70536d5296bf74d0ef44a92c17ef';
+    r'10f7c1be0ac2b5f5c196b2675ceffa64bbb3e8df';
 
 /// Applies favourite changes.
 ///
-/// Toggling is optimistic: the repository stream is the source of truth and
-/// updates within a frame, so the button responds immediately. A failed write
-/// is surfaced to the caller, which restores the previous state.
+/// The database stream is the source of truth and re-emits as soon as a write
+/// commits, so the button responds without holding its own copy of the state.
+/// A failed write is surfaced to the caller rather than swallowed.
 
 abstract class _$FavoritesController extends $Notifier<void> {
   void build();

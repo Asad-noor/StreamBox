@@ -166,7 +166,7 @@ final class PlaybackProgressRepositoryProvider
 }
 
 String _$playbackProgressRepositoryHash() =>
-    r'b98e63ce7131d6a382feb6c18196f233a7bdef1f';
+    r'9109b927d684df2f1042e9629098cb301ada5977';
 
 /// Drives playback for one title.
 ///
@@ -236,7 +236,7 @@ final class PlayerNotifierProvider
   }
 }
 
-String _$playerNotifierHash() => r'4589805e76040d5d7b79adb11637060278dad829';
+String _$playerNotifierHash() => r'da936cef0ce1c8450216e28461673665869ef42f';
 
 /// Drives playback for one title.
 ///

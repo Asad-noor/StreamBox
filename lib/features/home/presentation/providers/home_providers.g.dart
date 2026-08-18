@@ -126,3 +126,132 @@ abstract class _$HomeFeedNotifier extends $AsyncNotifier<HomeFeed> {
     element.handleCreate(ref, build);
   }
 }
+
+/// Resume position per title, keyed by identifier.
+///
+/// The home rails render summaries; this supplies the watched fraction each
+/// card needs without every card reaching into the database itself.
+
+@ProviderFor(resumeFractions)
+final resumeFractionsProvider = ResumeFractionsProvider._();
+
+/// Resume position per title, keyed by identifier.
+///
+/// The home rails render summaries; this supplies the watched fraction each
+/// card needs without every card reaching into the database itself.
+
+final class ResumeFractionsProvider
+    extends
+        $FunctionalProvider<
+          Map<String, double>,
+          Map<String, double>,
+          Map<String, double>
+        >
+    with $Provider<Map<String, double>> {
+  /// Resume position per title, keyed by identifier.
+  ///
+  /// The home rails render summaries; this supplies the watched fraction each
+  /// card needs without every card reaching into the database itself.
+  ResumeFractionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'resumeFractionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$resumeFractionsHash();
+
+  @$internal
+  @override
+  $ProviderElement<Map<String, double>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  Map<String, double> create(Ref ref) {
+    return resumeFractions(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, double> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, double>>(value),
+    );
+  }
+}
+
+String _$resumeFractionsHash() => r'0857ada90c11635407c8199a3331487ee349941c';
+
+/// The home feed with Continue Watching prepended.
+///
+/// Composed here rather than in the repository because the catalogue and the
+/// viewer's history come from different sources — one remote, one local — and
+/// joining them is a presentation concern, not something the catalogue knows
+/// how to do.
+
+@ProviderFor(homeFeedWithHistory)
+final homeFeedWithHistoryProvider = HomeFeedWithHistoryProvider._();
+
+/// The home feed with Continue Watching prepended.
+///
+/// Composed here rather than in the repository because the catalogue and the
+/// viewer's history come from different sources — one remote, one local — and
+/// joining them is a presentation concern, not something the catalogue knows
+/// how to do.
+
+final class HomeFeedWithHistoryProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<HomeFeed>,
+          AsyncValue<HomeFeed>,
+          AsyncValue<HomeFeed>
+        >
+    with $Provider<AsyncValue<HomeFeed>> {
+  /// The home feed with Continue Watching prepended.
+  ///
+  /// Composed here rather than in the repository because the catalogue and the
+  /// viewer's history come from different sources — one remote, one local — and
+  /// joining them is a presentation concern, not something the catalogue knows
+  /// how to do.
+  HomeFeedWithHistoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'homeFeedWithHistoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$homeFeedWithHistoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<HomeFeed>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AsyncValue<HomeFeed> create(Ref ref) {
+    return homeFeedWithHistory(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<HomeFeed> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<HomeFeed>>(value),
+    );
+  }
+}
+
+String _$homeFeedWithHistoryHash() =>
+    r'1cb00c332572ab98eeaa6f94c2a7a6bafb51f7cb';

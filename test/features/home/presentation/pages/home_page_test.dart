@@ -13,19 +13,29 @@ import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
 import 'package:streambox/features/home/presentation/pages/home_page.dart';
 import 'package:streambox/features/home/presentation/widgets/home_feed_skeleton.dart';
+import 'package:streambox/features/home/presentation/widgets/home_feed_view.dart';
+import 'package:streambox/features/player/domain/entities/playback_progress.dart';
+import 'package:streambox/features/player/presentation/providers/player_providers.dart';
 
 import '../../../../support/content_fixtures.dart';
 import '../../../../support/fake_content_repository.dart';
+import '../../../../support/recording_playback_progress_repository.dart';
 
 void main() {
   late FakeContentRepository repository;
+  late RecordingPlaybackProgressRepository progressRepository;
 
   Future<void> pumpHome(WidgetTester tester) async {
     await tester.binding.setSurfaceSize(const Size(400, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     final container = createAppProviderContainer(
-      overrides: [contentRepositoryProvider.overrideWithValue(repository)],
+      overrides: [
+        contentRepositoryProvider.overrideWithValue(repository),
+        playbackProgressRepositoryProvider.overrideWithValue(
+          progressRepository,
+        ),
+      ],
     );
     addTearDown(container.dispose);
 
@@ -39,7 +49,23 @@ void main() {
 
   setUp(() {
     repository = FakeContentRepository(feed: buildHomeFeed());
+    progressRepository = RecordingPlaybackProgressRepository();
+    addTearDown(progressRepository.dispose);
   });
+
+  void seedProgress(
+    String id, {
+    Duration position = const Duration(minutes: 3),
+    Duration duration = const Duration(minutes: 10),
+  }) => progressRepository.seed(
+    content: buildSnapshot(contentId: id),
+    progress: PlaybackProgress(
+      contentId: id,
+      position: position,
+      duration: duration,
+      updatedAt: DateTime(2026, 8, 19, 12),
+    ),
+  );
 
   group('HomePage', () {
     testWidgets('shows the skeleton before data arrives', (tester) async {
@@ -164,6 +190,94 @@ void main() {
       expect(find.text('Section 0'), findsOneWidget);
       expect(find.text('Section 11'), findsNothing);
       expect(tester.widgetList(find.byType(ContentCard)).length, lessThan(24));
+    });
+  });
+
+  group('continue watching', () {
+    testWidgets('is absent when nothing has been watched', (tester) async {
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Continue watching'), findsNothing);
+    });
+
+    testWidgets('appears above the other rails once a title is started', (
+      tester,
+    ) async {
+      repository.feed = buildHomeFeed(
+        sections: [
+          buildSection(
+            title: 'Trending now',
+            items: [buildContent(id: 'a', title: 'Harbour Lights')],
+          ),
+        ],
+      );
+      seedProgress('a');
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      // Asserted on the composed feed rather than pixel positions: rails
+      // below the fold are built lazily and would not be found at all.
+      final view = tester.widget<HomeFeedView>(find.byType(HomeFeedView));
+
+      expect(view.feed.visibleSections.map((section) => section.title), [
+        'Continue watching',
+        'Trending now',
+      ]);
+      expect(find.text('Continue watching'), findsOneWidget);
+    });
+
+    testWidgets('shows the watched fraction on the resume card', (
+      tester,
+    ) async {
+      repository.feed = buildHomeFeed(
+        sections: [
+          buildSection(
+            items: [buildContent(id: 'a', title: 'Harbour Lights')],
+          ),
+        ],
+      );
+      seedProgress('a', position: const Duration(minutes: 3));
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      final indicator = tester.widget<LinearProgressIndicator>(
+        find.byType(LinearProgressIndicator).first,
+      );
+      expect(indicator.value, closeTo(0.3, 0.001));
+    });
+
+    testWidgets('excludes a title that was watched to the end', (tester) async {
+      repository.feed = buildHomeFeed(
+        sections: [
+          buildSection(items: [buildContent(id: 'a')]),
+        ],
+      );
+      seedProgress('a', position: const Duration(minutes: 10));
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Continue watching'), findsNothing);
+    });
+
+    testWidgets('drops a resume entry no longer in the catalogue', (
+      tester,
+    ) async {
+      repository.feed = buildHomeFeed(
+        sections: [
+          buildSection(items: [buildContent(id: 'still-here')]),
+        ],
+      );
+      seedProgress('withdrawn');
+
+      await pumpHome(tester);
+      await tester.pumpAndSettle();
+
+      // A card that cannot be opened is worse than no card.
+      expect(find.text('Continue watching'), findsNothing);
     });
   });
 }

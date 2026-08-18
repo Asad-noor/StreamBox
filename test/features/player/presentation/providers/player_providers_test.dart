@@ -47,7 +47,11 @@ void main() {
     engine = FakePlaybackEngine();
     progressRepository = RecordingPlaybackProgressRepository();
     repository = FakeContentRepository()
-      ..content = buildContent(id: contentId, streamUrl: streamUrl);
+      ..content = buildContent(
+        id: contentId,
+        title: 'The Long Descent',
+        streamUrl: streamUrl,
+      );
   });
 
   group('start-up', () {
@@ -216,8 +220,10 @@ void main() {
 
       final saved = progressRepository.entries.single;
       expect(saved.contentId, contentId);
-      expect(saved.position, const Duration(seconds: 6));
-      expect(saved.duration, engine.loadedDuration);
+      expect(saved.progress.position, const Duration(seconds: 6));
+      expect(saved.progress.duration, engine.loadedDuration);
+      // The snapshot travels with the write so history renders offline.
+      expect(saved.content.title, 'The Long Descent');
     });
 
     test('writes at most once per interval during steady playback', () async {
@@ -265,8 +271,8 @@ void main() {
       await settle();
 
       final saved = progressRepository.entries.single;
-      expect(saved.position, engine.loadedDuration);
-      expect(saved.isCompleted, isTrue);
+      expect(saved.progress.position, engine.loadedDuration);
+      expect(saved.progress.isCompleted, isTrue);
     });
 
     test('does not write while the duration is unknown', () async {
@@ -288,8 +294,9 @@ void main() {
 
   group('resume', () {
     test('starts from a stored resume point', () async {
-      await progressRepository.saveProgress(
-        PlaybackProgress(
+      progressRepository.seed(
+        content: buildSnapshot(contentId: contentId),
+        progress: PlaybackProgress(
           contentId: contentId,
           position: const Duration(minutes: 4),
           duration: const Duration(minutes: 10),
@@ -311,8 +318,9 @@ void main() {
     });
 
     test('ignores a resume point that is effectively finished', () async {
-      await progressRepository.saveProgress(
-        PlaybackProgress(
+      progressRepository.seed(
+        content: buildSnapshot(contentId: contentId),
+        progress: PlaybackProgress(
           contentId: contentId,
           position: const Duration(minutes: 10),
           duration: const Duration(minutes: 10),
@@ -329,27 +337,29 @@ void main() {
   });
 
   group('teardown', () {
-    test('disposing the container releases the engine', () async {
+    test('disposing the container releases the real engine', () async {
+      // Deliberately does not override playbackEngineProvider: the point is to
+      // prove the provider tears its own engine down, which an override
+      // would bypass.
       final container = createAppProviderContainer(
         overrides: [
           contentRepositoryProvider.overrideWithValue(repository),
-          playbackEngineProvider(contentId).overrideWithValue(engine),
+          playbackProgressRepositoryProvider.overrideWithValue(
+            progressRepository,
+          ),
         ],
       );
-      container.listen(
-        playerProvider(contentId),
-        (_, _) {},
-        fireImmediately: true,
-      );
-      await settle();
+
+      final realEngine = container.read(playbackEngineProvider(contentId));
+      var streamClosed = false;
+      realEngine.stateStream.listen(null, onDone: () => streamClosed = true);
 
       container.dispose();
       await settle();
 
-      // The override supplies the engine, so its disposal is the test's job;
-      // what matters is that no state is published after teardown.
-      engine.emit(engine.state.copyWith(position: const Duration(minutes: 9)));
-      await settle();
+      // A closed state stream is the observable evidence that the engine
+      // released its resources rather than leaking with the screen.
+      expect(streamClosed, isTrue);
     });
   });
 }

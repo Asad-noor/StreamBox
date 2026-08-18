@@ -6,8 +6,6 @@ import 'package:streambox/app/app.dart';
 import 'package:streambox/app/router/app_router.dart';
 import 'package:streambox/app/router/routes.dart';
 import 'package:streambox/core/riverpod/app_provider_scope.dart';
-import 'package:streambox/features/catalog/data/datasources/fake_content_remote_data_source.dart';
-import 'package:streambox/features/catalog/data/providers/catalog_providers.dart';
 import 'package:streambox/features/details/presentation/pages/content_details_page.dart';
 import 'package:streambox/features/favorites/presentation/pages/favorites_page.dart';
 import 'package:streambox/features/history/presentation/pages/history_page.dart';
@@ -17,20 +15,13 @@ import 'package:streambox/features/profile/presentation/pages/profile_page.dart'
 import 'package:streambox/features/search/presentation/pages/search_page.dart';
 
 import '../../support/offline_image_http_overrides.dart';
-
-/// Removes the fake source's simulated latency so navigation tests settle
-/// immediately instead of waiting on an artificial delay.
-final _fastCatalogue = [
-  contentRemoteDataSourceProvider.overrideWithValue(
-    const FakeContentRemoteDataSource(latency: Duration.zero),
-  ),
-];
+import '../../support/test_database.dart';
 
 void main() {
   Future<GoRouter> pumpApp(WidgetTester tester) async {
     useOfflineImages();
 
-    final container = createAppProviderContainer(overrides: _fastCatalogue);
+    final container = createAppProviderContainer(overrides: testOverrides());
     addTearDown(container.dispose);
 
     await tester.pumpWidget(

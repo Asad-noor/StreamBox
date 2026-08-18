@@ -1,6 +1,7 @@
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/content_section.dart';
+import 'package:streambox/features/catalog/domain/entities/content_snapshot.dart';
 import 'package:streambox/features/catalog/domain/entities/episode.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
 import 'package:streambox/features/catalog/domain/entities/season.dart';
@@ -112,4 +113,15 @@ ContentDetails buildSeriesDetails({
         for (var index = 1; index <= seasonCount; index++)
           buildSeason(number: index),
       ],
+);
+
+ContentSnapshot buildSnapshot({
+  String contentId = 'test-id',
+  String title = 'Test Title',
+  int releaseYear = 2026,
+}) => ContentSnapshot(
+  contentId: contentId,
+  title: title,
+  posterUrl: 'https://example.invalid/$contentId/poster.jpg',
+  releaseYear: releaseYear,
 );

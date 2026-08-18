@@ -24,7 +24,7 @@ class HomePage extends ConsumerWidget {
         onRefresh: notifier.refresh,
         edgeOffset: MediaQuery.paddingOf(context).top,
         child: AsyncValueView(
-          value: ref.watch(homeFeedProvider),
+          value: ref.watch(homeFeedWithHistoryProvider),
           skeleton: const HomeFeedSkeleton(),
           onRetry: notifier.retry,
           isEmpty: (feed) => feed.isEmpty,
@@ -35,6 +35,7 @@ class HomePage extends ConsumerWidget {
           ),
           data: (feed) => HomeFeedView(
             feed: feed,
+            resumeFractions: ref.watch(resumeFractionsProvider),
             onContentTap: (content) => _openDetails(context, content),
             onWatch: (content) => _openPlayer(context, content),
           ),
