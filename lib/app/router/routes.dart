@@ -132,15 +132,20 @@ class ContentDetailsRoute extends GoRouteData with $ContentDetailsRoute {
 
 @TypedGoRoute<PlayerRoute>(path: PlayerRoute.path)
 class PlayerRoute extends GoRouteData with $PlayerRoute {
-  const PlayerRoute({required this.contentId});
+  const PlayerRoute({required this.contentId, this.title});
 
   static const String path = '/watch/:contentId';
 
   final String contentId;
 
+  /// Shown in the player's title bar while the stream resolves. Passed as a
+  /// query parameter rather than an object, so a deep link still works — the
+  /// player falls back to an empty bar when it is absent.
+  final String? title;
+
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      PlayerPage(contentId: contentId);
+      PlayerPage(contentId: contentId, title: title ?? '');
 }
 
 @TypedGoRoute<HistoryRoute>(path: HistoryRoute.path)

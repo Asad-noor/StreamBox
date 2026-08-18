@@ -178,14 +178,18 @@ RouteBase get $playerRoute => GoRouteData.$route(
 );
 
 mixin $PlayerRoute on GoRouteData {
-  static PlayerRoute _fromState(GoRouterState state) =>
-      PlayerRoute(contentId: state.pathParameters['contentId']!);
+  static PlayerRoute _fromState(GoRouterState state) => PlayerRoute(
+    contentId: state.pathParameters['contentId']!,
+    title: state.uri.queryParameters['title'],
+  );
 
   PlayerRoute get _self => this as PlayerRoute;
 
   @override
-  String get location =>
-      GoRouteData.$location('/watch/${Uri.encodeComponent(_self.contentId)}');
+  String get location => GoRouteData.$location(
+    '/watch/${Uri.encodeComponent(_self.contentId)}',
+    queryParams: {if (_self.title != null) 'title': _self.title},
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

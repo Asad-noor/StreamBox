@@ -48,6 +48,8 @@ class HomePage extends ConsumerWidget {
   void _openDetails(BuildContext context, Content content) =>
       ContentDetailsRoute(contentId: content.id).push<void>(context);
 
-  void _openPlayer(BuildContext context, Content content) =>
-      PlayerRoute(contentId: content.id).push<void>(context);
+  void _openPlayer(BuildContext context, Content content) => PlayerRoute(
+    contentId: content.id,
+    title: content.title,
+  ).push<void>(context);
 }

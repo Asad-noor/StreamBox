@@ -58,7 +58,9 @@ class AppErrorView extends StatelessWidget {
 
   /// Retrying an unauthorised or missing resource just reproduces the failure.
   bool get _isRecoverable => switch (error) {
-    UnauthorizedException() || NotFoundException() => false,
+    UnauthorizedException() ||
+    NotFoundException() ||
+    PlaybackUnavailableException() => false,
     _ => true,
   };
 
@@ -69,6 +71,8 @@ class AppErrorView extends StatelessWidget {
     NotFoundException() => Icons.search_off_rounded,
     ServerException() => Icons.cloud_off_rounded,
     ParsingException() || CacheException() => Icons.broken_image_outlined,
+    PlaybackException() => Icons.play_disabled_rounded,
+    PlaybackUnavailableException() => Icons.schedule_rounded,
     RequestCancelledException() ||
     UnknownException() => Icons.error_outline_rounded,
   };
@@ -79,6 +83,8 @@ class AppErrorView extends StatelessWidget {
     UnauthorizedException() => 'Session expired',
     NotFoundException() => 'Nothing here',
     ServerException() => 'Service unavailable',
+    PlaybackException() => 'Cannot play this title',
+    PlaybackUnavailableException() => 'Not available yet',
     _ => 'Something went wrong',
   };
 }

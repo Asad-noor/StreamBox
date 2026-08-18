@@ -103,6 +103,27 @@ final class RequestCancelledException extends AppException {
   });
 }
 
+/// Video playback failed: the stream could not be opened, decoded, or kept
+/// running. Separate from [NetworkException] because the recovery the user is
+/// offered differs — retrying a stream is worth doing even when online.
+final class PlaybackException extends AppException {
+  const PlaybackException({
+    super.message = 'This title could not be played. Please try again.',
+    super.cause,
+    super.stackTrace,
+  });
+}
+
+/// The title exists but has no stream attached — announced but not yet
+/// available. Distinct from [PlaybackException] because retrying cannot help.
+final class PlaybackUnavailableException extends AppException {
+  const PlaybackUnavailableException({
+    super.message = 'This title is not available to stream yet.',
+    super.cause,
+    super.stackTrace,
+  });
+}
+
 /// Fallback for anything that could not be classified.
 final class UnknownException extends AppException {
   const UnknownException({

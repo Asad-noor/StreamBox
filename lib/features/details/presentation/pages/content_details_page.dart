@@ -51,11 +51,16 @@ class ContentDetailsPage extends ConsumerWidget {
       return;
     }
 
-    PlayerRoute(contentId: details.id).push<void>(context);
+    PlayerRoute(
+      contentId: details.id,
+      title: details.title,
+    ).push<void>(context);
   }
 
   /// Episodes are addressed by their own identifier, so the player resolves and
   /// resumes them independently of the series they belong to.
-  void _playEpisode(BuildContext context, Episode episode) =>
-      PlayerRoute(contentId: episode.id).push<void>(context);
+  void _playEpisode(BuildContext context, Episode episode) => PlayerRoute(
+    contentId: episode.id,
+    title: episode.title,
+  ).push<void>(context);
 }
