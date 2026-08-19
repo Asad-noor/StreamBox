@@ -69,8 +69,32 @@ void main() {
       expect(engine.loadedUrls, [streamUrl]);
       expect(
         container.read(playerProvider(contentId)).status,
-        PlaybackStatus.paused,
+        PlaybackStatus.playing,
       );
+    });
+
+    test('starts playing as soon as the stream is ready', () async {
+      buildContainer();
+      await settle();
+
+      // The viewer arrived by pressing play; asking again is friction.
+      expect(engine.playCalls, 1);
+    });
+
+    test('does not try to play a stream that failed to open', () async {
+      engine.loadFailure = const PlaybackException();
+      buildContainer();
+      await settle();
+
+      expect(engine.playCalls, 0);
+    });
+
+    test('does not try to play when the title cannot be resolved', () async {
+      repository.failure = const NotFoundException();
+      buildContainer();
+      await settle();
+
+      expect(engine.playCalls, 0);
     });
 
     test('fails when the title cannot be resolved', () async {
@@ -176,10 +200,13 @@ void main() {
       expect(container.read(playerProvider(contentId)).hasFailed, isTrue);
 
       engine.loadFailure = null;
+      final playsBeforeRetry = engine.playCalls;
       await container.read(playerProvider(contentId).notifier).retry();
       await settle();
 
       expect(engine.loadedUrls, [streamUrl, streamUrl]);
+      // Retry resumes playing rather than leaving a paused player behind.
+      expect(engine.playCalls, playsBeforeRetry + 1);
       // Exactly where playback stopped, not the throttled report.
       expect(engine.startPositions.last, const Duration(minutes: 6));
     });

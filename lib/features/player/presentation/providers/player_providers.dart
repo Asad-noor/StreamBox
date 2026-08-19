@@ -100,7 +100,7 @@ class PlayerNotifier extends _$PlayerNotifier {
 
     final resumeFrom = state.position;
     state = PlaybackState.initial.copyWith(status: PlaybackStatus.loading);
-    await _engine.load(streamUrl: streamUrl, startAt: resumeFrom);
+    await _openStream(streamUrl, startAt: resumeFrom);
   }
 
   PlaybackEngine get _engine => ref.read(playbackEngineProvider(contentId));
@@ -110,6 +110,7 @@ class PlayerNotifier extends _$PlayerNotifier {
     // identifier may name an episode, and only the catalogue knows how to turn
     // either kind into a stream.
     final result = await ref.read(contentRepositoryProvider).getPlayable(id);
+    if (!ref.mounted) return;
 
     switch (result) {
       case Failure(:final error):
@@ -127,14 +128,37 @@ class PlayerNotifier extends _$PlayerNotifier {
         _streamUrl = value.streamUrl;
         _snapshot = value.snapshot;
         _resumeFrom = await _storedResumePoint(_snapshot!.contentId);
+        if (!ref.mounted) return;
+
         _lastPersistedPosition = _resumeFrom;
 
         _subscription = _engine.stateStream.listen(_onEngineState);
-        await _engine.load(streamUrl: value.streamUrl, startAt: _resumeFrom);
+        await _openStream(value.streamUrl, startAt: _resumeFrom);
     }
   }
 
+  /// Opens a stream and starts it.
+  ///
+  /// Playback begins as soon as the stream is ready: the viewer arrived here
+  /// by pressing play, so asking them to press it a second time is friction,
+  /// not a choice. A stream that failed to open is left alone rather than
+  /// having play called on nothing.
+  Future<void> _openStream(
+    String streamUrl, {
+    required Duration startAt,
+  }) async {
+    await _engine.load(streamUrl: streamUrl, startAt: startAt);
+
+    // Leaving the player mid-load disposes this notifier while the load is
+    // still in flight; touching state afterwards would throw.
+    if (!ref.mounted || state.hasFailed) return;
+
+    await _engine.play();
+  }
+
   void _onEngineState(PlaybackState next) {
+    if (!ref.mounted) return;
+
     state = next;
     unawaited(_persistProgress(next));
   }

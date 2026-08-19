@@ -32,6 +32,12 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
   bool _controlsVisible = true;
   bool _isFullscreen = false;
 
+  /// Hides the controls a few seconds after the last interaction.
+  ///
+  /// Only ever runs while playback is advancing: hiding the controls over a
+  /// paused or failed player would strip away the only way to restart it.
+  Timer? _hideTimer;
+
   /// Set while the app is backgrounded so playback only resumes if it was
   /// actually running — returning to a paused player must not start it.
   bool _resumeOnForeground = false;
@@ -45,6 +51,7 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
 
   @override
   void dispose() {
+    _hideTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _restoreChrome();
     super.dispose();
@@ -87,8 +94,58 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
-  void _toggleControls() =>
-      setState(() => _controlsVisible = !_controlsVisible);
+  /// A tap anywhere on the video toggles the controls.
+  void _toggleControls() {
+    if (_controlsVisible) {
+      _hideControls();
+      return;
+    }
+
+    _showControls();
+  }
+
+  void _showControls() {
+    _hideTimer?.cancel();
+    setState(() => _controlsVisible = true);
+    _scheduleHide();
+  }
+
+  void _hideControls() {
+    _hideTimer?.cancel();
+    if (_controlsVisible) setState(() => _controlsVisible = false);
+  }
+
+  /// Arms the auto-hide, replacing any pending one so that each interaction
+  /// buys a full interval rather than inheriting the remainder of the last.
+  void _scheduleHide() {
+    _hideTimer?.cancel();
+
+    if (!_isPlaying) return;
+
+    _hideTimer = Timer(AppDurations.controlsAutoHide, () {
+      if (mounted) setState(() => _controlsVisible = false);
+    });
+  }
+
+  bool get _isPlaying =>
+      ref.read(playerProvider(widget.contentId)).status ==
+      PlaybackStatus.playing;
+
+  /// Keeps the auto-hide in step with playback.
+  ///
+  /// Controls fade once playback starts, and come back the moment it stops,
+  /// so a viewer who pauses is never left with no way to resume.
+  void _onPlaybackStatusChanged(PlaybackStatus? previous, PlaybackStatus next) {
+    if (previous == next) return;
+
+    if (next == PlaybackStatus.playing) {
+      _scheduleHide();
+      return;
+    }
+
+    _hideTimer?.cancel();
+    if (!_controlsVisible) setState(() => _controlsVisible = true);
+  }
 
   void _toggleFullscreen() {
     setState(() => _isFullscreen = !_isFullscreen);
@@ -110,6 +167,11 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
     final contentId = widget.contentId;
     final state = ref.watch(playerProvider(contentId));
     final notifier = ref.read(playerProvider(contentId).notifier);
+
+    ref.listen(
+      playerProvider(contentId).select((state) => state.status),
+      _onPlaybackStatusChanged,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -135,10 +197,22 @@ class _PlayerPageState extends ConsumerState<PlayerPage>
                         state: state,
                         title: widget.title,
                         isFullscreen: _isFullscreen,
-                        onTogglePlayPause: notifier.togglePlayPause,
-                        onSeek: notifier.seek,
-                        onSkip: notifier.skip,
-                        onToggleMuted: notifier.toggleMuted,
+                        onTogglePlayPause: () {
+                          _showControls();
+                          unawaited(notifier.togglePlayPause());
+                        },
+                        onSeek: (position) {
+                          _showControls();
+                          unawaited(notifier.seek(position));
+                        },
+                        onSkip: (offset) {
+                          _showControls();
+                          unawaited(notifier.skip(offset));
+                        },
+                        onToggleMuted: () {
+                          _showControls();
+                          unawaited(notifier.toggleMuted());
+                        },
                         onToggleFullscreen: _toggleFullscreen,
                         onBack: () => Navigator.of(context).maybePop(),
                       ),
