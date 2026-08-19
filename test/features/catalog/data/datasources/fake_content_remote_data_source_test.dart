@@ -215,6 +215,32 @@ void main() {
       );
     });
 
+    test('gives each episode in a season its own description', () async {
+      final details = await source.fetchContentDetails('harbour-lights');
+      final season = details.seasons.first;
+
+      // Six identical paragraphs is not a catalogue.
+      expect(
+        season.episodes.map((episode) => episode.synopsis).toSet(),
+        hasLength(season.episodes.length),
+      );
+      expect(
+        season.episodes.map((episode) => episode.title).toSet(),
+        hasLength(season.episodes.length),
+      );
+    });
+
+    test('episode descriptions differ from the series blurb', () async {
+      final details = await source.fetchContentDetails('harbour-lights');
+
+      expect(
+        details.seasons.first.episodes.every(
+          (episode) => episode.synopsis != details.content.synopsis,
+        ),
+        isTrue,
+      );
+    });
+
     test('is deterministic across calls', () async {
       final first = await source.fetchContentDetails('harbour-lights');
       final second = await source.fetchContentDetails('harbour-lights');

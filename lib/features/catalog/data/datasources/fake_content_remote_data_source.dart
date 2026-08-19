@@ -90,8 +90,8 @@ final class FakeContentRemoteDataSource implements ContentRemoteDataSource {
               EpisodeDto(
                 id: '${series.id}-s${season}e$episode',
                 number: episode,
-                title: _episodeTitle(season, episode),
-                synopsis: series.synopsis,
+                title: _episodeSummary(season, episode).title,
+                synopsis: _episodeSummary(season, episode).synopsis,
                 stillUrl: MediaConstants.backdropUrl(
                   '${series.id}-s${season}e$episode',
                 ),
@@ -105,19 +105,55 @@ final class FakeContentRemoteDataSource implements ContentRemoteDataSource {
 
   static const int _episodesPerSeason = 6;
 
-  /// Offset by season so the same six titles are not repeated verbatim in
-  /// every season.
-  static String _episodeTitle(int season, int episode) {
-    const titles = [
-      'Arrivals',
-      'The Long Way Round',
-      'What the Tide Left',
-      'Small Hours',
-      'Everything Owed',
-      'Last Light',
+  /// Title and synopsis for one episode.
+  ///
+  /// Each episode gets its own description rather than repeating the series
+  /// blurb, because a list of six identical paragraphs is not a catalogue.
+  /// Offset by season so the same six do not repeat verbatim in every season.
+  static ({String title, String synopsis}) _episodeSummary(
+    int season,
+    int episode,
+  ) {
+    const episodes = [
+      (
+        title: 'Arrivals',
+        synopsis:
+            'Everyone comes back for the funeral, and nobody agrees on what '
+            'they are actually there to bury.',
+      ),
+      (
+        title: 'The Long Way Round',
+        synopsis:
+            'A route nobody takes turns out to be the only one that makes the '
+            'timings work.',
+      ),
+      (
+        title: 'What the Tide Left',
+        synopsis:
+            'The water goes out further than anyone remembers, and leaves '
+            'something behind that was meant to stay hidden.',
+      ),
+      (
+        title: 'Small Hours',
+        synopsis:
+            'Two people who have avoided each other for a decade end up on the '
+            'same night shift.',
+      ),
+      (
+        title: 'Everything Owed',
+        synopsis:
+            'The ledger everyone assumed was destroyed turns up, and it names '
+            'more names than expected.',
+      ),
+      (
+        title: 'Last Light',
+        synopsis:
+            'One evening to finish it, and a forecast that gives them rather '
+            'less than that.',
+      ),
     ];
 
-    return titles[(season * 2 + episode - 1) % titles.length];
+    return episodes[(season * 2 + episode - 1) % episodes.length];
   }
 
   @override
