@@ -96,7 +96,7 @@ final class FakeContentRemoteDataSource implements ContentRemoteDataSource {
                   '${series.id}-s${season}e$episode',
                 ),
                 durationMinutes: series.durationMinutes,
-                streamUrl: MediaConstants.sampleHlsStream,
+                streamUrl: MediaConstants.streamUrlFor(series.id),
               ),
           ],
         ),
@@ -168,7 +168,7 @@ final class FakeContentRemoteDataSource implements ContentRemoteDataSource {
     return PlayableDto(
       id: id,
       title: '${series.title} S$season E$episode',
-      streamUrl: MediaConstants.sampleHlsStream,
+      streamUrl: MediaConstants.streamUrlFor(seriesId),
       posterUrl: series.posterUrl,
       releaseYear: series.releaseYear,
       // Grouped under the series so history shows one row per show rather
@@ -275,7 +275,7 @@ ContentModel _movie({
   genres: genres,
   rating: rating,
   durationMinutes: minutes,
-  streamUrl: MediaConstants.sampleHlsStream,
+  streamUrl: MediaConstants.streamUrlFor(id),
 );
 
 ContentModel _series({
@@ -298,7 +298,7 @@ ContentModel _series({
   genres: genres,
   rating: rating,
   durationMinutes: minutes,
-  streamUrl: MediaConstants.sampleHlsStream,
+  streamUrl: MediaConstants.streamUrlFor(id),
   seasonCount: seasons,
 );
 
