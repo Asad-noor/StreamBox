@@ -2,6 +2,7 @@ import 'package:streambox/core/result/result.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
+import 'package:streambox/features/catalog/domain/entities/playable.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 
 /// The catalogue's contract with the rest of the application.
@@ -24,6 +25,13 @@ abstract interface class ContentRepository {
   /// Separate from [getContentById] because it is a heavier payload: rails and
   /// search only ever need the summary.
   Future<Result<ContentDetails>> getContentDetails(String id);
+
+  /// Resolves an identifier to something the player can open.
+  ///
+  /// Accepts both a title identifier and an episode identifier, because the
+  /// player is handed whichever the viewer tapped and should not have to know
+  /// the difference.
+  Future<Result<Playable>> getPlayable(String id);
 
   /// One page of titles matching [query].
   ///

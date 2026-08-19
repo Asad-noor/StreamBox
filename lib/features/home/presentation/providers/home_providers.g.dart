@@ -254,4 +254,4 @@ final class HomeFeedWithHistoryProvider
 }
 
 String _$homeFeedWithHistoryHash() =>
-    r'1cb00c332572ab98eeaa6f94c2a7a6bafb51f7cb';
+    r'47c090f8104562c9d26d16b97b23b47a88742632';

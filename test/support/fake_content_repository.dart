@@ -2,7 +2,9 @@ import 'package:streambox/core/error/app_exception.dart';
 import 'package:streambox/core/result/result.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/content_details.dart';
+import 'package:streambox/features/catalog/domain/entities/content_snapshot.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
+import 'package:streambox/features/catalog/domain/entities/playable.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 import 'package:streambox/features/catalog/domain/repositories/content_repository.dart';
 
@@ -85,6 +87,32 @@ final class FakeContentRepository implements ContentRepository {
     if (failure case final failure?) return Failure(failure);
 
     return Success(details!);
+  }
+
+  /// Returned by [getPlayable]. Defaults to one derived from [content].
+  Playable? playable;
+
+  /// Every id passed to [getPlayable], in order.
+  final List<String> playableCalls = [];
+
+  @override
+  Future<Result<Playable>> getPlayable(String id) async {
+    playableCalls.add(id);
+
+    if (failure case final failure?) return Failure(failure);
+
+    if (playable case final playable?) return Success(playable);
+
+    final source = content!;
+
+    return Success(
+      Playable(
+        id: source.id,
+        title: source.title,
+        streamUrl: source.streamUrl ?? '',
+        snapshot: ContentSnapshot.fromContent(source),
+      ),
+    );
   }
 
   @override

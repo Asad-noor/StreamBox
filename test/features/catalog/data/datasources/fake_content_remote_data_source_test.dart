@@ -233,6 +233,79 @@ void main() {
     });
   });
 
+  group('fetchPlayable', () {
+    test('resolves a movie identifier', () async {
+      final playable = await source.fetchPlayable('the-long-descent');
+
+      expect(playable.id, 'the-long-descent');
+      expect(playable.contentId, 'the-long-descent');
+      expect(playable.streamUrl, isNotEmpty);
+    });
+
+    test('resolves an episode identifier', () async {
+      final playable = await source.fetchPlayable('harbour-lights-s2e3');
+
+      expect(playable.id, 'harbour-lights-s2e3');
+      expect(playable.title, contains('S2 E3'));
+      expect(playable.streamUrl, isNotEmpty);
+    });
+
+    test('groups an episode under its series', () async {
+      final playable = await source.fetchPlayable('harbour-lights-s1e1');
+
+      // History shows one row per show, not one per episode watched.
+      expect(playable.contentId, 'harbour-lights');
+    });
+
+    test('borrows the series artwork for an episode', () async {
+      final series = await source.fetchContentById('harbour-lights');
+      final playable = await source.fetchPlayable('harbour-lights-s1e1');
+
+      expect(playable.posterUrl, series.posterUrl);
+      expect(playable.releaseYear, series.releaseYear);
+    });
+
+    test('rejects an episode of a season that does not exist', () async {
+      expect(
+        () => source.fetchPlayable('harbour-lights-s9e1'),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+
+    test('rejects an episode number beyond the season', () async {
+      expect(
+        () => source.fetchPlayable('harbour-lights-s1e99'),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+
+    test('rejects an episode of a movie', () async {
+      expect(
+        () => source.fetchPlayable('the-long-descent-s1e1'),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+
+    test('rejects an unrecognised identifier', () async {
+      expect(
+        () => source.fetchPlayable('nonsense'),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+
+    test('every episode the details screen lists is playable', () async {
+      final details = await source.fetchContentDetails('harbour-lights');
+
+      // The bug this guards against: details offering episodes the player
+      // cannot open.
+      for (final season in details.seasons) {
+        for (final episode in season.episodes) {
+          await expectLater(source.fetchPlayable(episode.id), completes);
+        }
+      }
+    });
+  });
+
   group('fetchHomeFeed', () {
     test('returns a featured title and non-empty sections', () async {
       final feed = await source.fetchHomeFeed();

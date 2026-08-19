@@ -121,6 +121,63 @@ final class FakeContentRemoteDataSource implements ContentRemoteDataSource {
   }
 
   @override
+  Future<PlayableDto> fetchPlayable(String id) async {
+    await _simulateRequest();
+
+    // A title identifier resolves directly.
+    final title = _catalogue.where((item) => item.id == id).firstOrNull;
+    if (title != null) {
+      final streamUrl = title.streamUrl;
+      if (streamUrl == null || streamUrl.isEmpty) {
+        throw const NotFoundException();
+      }
+
+      return PlayableDto(
+        id: title.id,
+        title: title.title,
+        streamUrl: streamUrl,
+        posterUrl: title.posterUrl,
+        releaseYear: title.releaseYear,
+        contentId: title.id,
+      );
+    }
+
+    // Otherwise it may be an episode of a series.
+    return _episodePlayable(id);
+  }
+
+  /// Episode identifiers are `<seriesId>-s<season>e<episode>`.
+  PlayableDto _episodePlayable(String id) {
+    final match = RegExp(r'^(.+)-s(\d+)e(\d+)$').firstMatch(id);
+    if (match == null) throw const NotFoundException();
+
+    final seriesId = match.group(1)!;
+    final series = _catalogue.where((item) => item.id == seriesId).firstOrNull;
+    if (series?.seasonCount == null) throw const NotFoundException();
+
+    final season = int.parse(match.group(2)!);
+    final episode = int.parse(match.group(3)!);
+
+    if (season < 1 || season > series!.seasonCount!) {
+      throw const NotFoundException();
+    }
+    if (episode < 1 || episode > _episodesPerSeason) {
+      throw const NotFoundException();
+    }
+
+    return PlayableDto(
+      id: id,
+      title: '${series.title} S$season E$episode',
+      streamUrl: MediaConstants.sampleHlsStream,
+      posterUrl: series.posterUrl,
+      releaseYear: series.releaseYear,
+      // Grouped under the series so history shows one row per show rather
+      // than one per episode watched.
+      contentId: seriesId,
+    );
+  }
+
+  @override
   Future<SearchResultsDto> searchContent({
     required String query,
     required int page,

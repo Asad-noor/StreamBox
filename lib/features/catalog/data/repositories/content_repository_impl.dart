@@ -3,8 +3,10 @@ import 'package:streambox/features/catalog/data/datasources/content_remote_data_
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/content_section.dart';
+import 'package:streambox/features/catalog/domain/entities/content_snapshot.dart';
 import 'package:streambox/features/catalog/domain/entities/episode.dart';
 import 'package:streambox/features/catalog/domain/entities/home_feed.dart';
+import 'package:streambox/features/catalog/domain/entities/playable.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 import 'package:streambox/features/catalog/domain/entities/season.dart';
 import 'package:streambox/features/catalog/domain/repositories/content_repository.dart';
@@ -78,6 +80,23 @@ final class ContentRepositoryImpl implements ContentRepository {
           seasons: dto.seasons.map(_toSeason).toList(),
         );
       });
+
+  @override
+  Future<Result<Playable>> getPlayable(String id) => Result.guard(() async {
+    final dto = await _remoteDataSource.fetchPlayable(id);
+
+    return Playable(
+      id: dto.id,
+      title: dto.title,
+      streamUrl: dto.streamUrl,
+      snapshot: ContentSnapshot(
+        contentId: dto.contentId,
+        title: dto.title,
+        posterUrl: dto.posterUrl,
+        releaseYear: dto.releaseYear,
+      ),
+    );
+  });
 
   @override
   Future<Result<SearchResults>> searchContent({

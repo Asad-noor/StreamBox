@@ -106,16 +106,17 @@ class PlayerNotifier extends _$PlayerNotifier {
   PlaybackEngine get _engine => ref.read(playbackEngineProvider(contentId));
 
   Future<void> _start(String id) async {
-    final result = await ref.read(contentRepositoryProvider).getContentById(id);
+    // Resolved through the catalogue rather than by fetching a title: the
+    // identifier may name an episode, and only the catalogue knows how to turn
+    // either kind into a stream.
+    final result = await ref.read(contentRepositoryProvider).getPlayable(id);
 
     switch (result) {
       case Failure(:final error):
         state = state.copyWith(status: PlaybackStatus.failed, error: error);
         return;
       case Success(:final value):
-        final streamUrl = value.streamUrl;
-
-        if (streamUrl == null || streamUrl.isEmpty) {
+        if (value.streamUrl.isEmpty) {
           state = state.copyWith(
             status: PlaybackStatus.failed,
             error: const PlaybackUnavailableException(),
@@ -123,13 +124,13 @@ class PlayerNotifier extends _$PlayerNotifier {
           return;
         }
 
-        _streamUrl = streamUrl;
-        _snapshot = ContentSnapshot.fromContent(value);
-        _resumeFrom = await _storedResumePoint(id);
+        _streamUrl = value.streamUrl;
+        _snapshot = value.snapshot;
+        _resumeFrom = await _storedResumePoint(_snapshot!.contentId);
         _lastPersistedPosition = _resumeFrom;
 
         _subscription = _engine.stateStream.listen(_onEngineState);
-        await _engine.load(streamUrl: streamUrl, startAt: _resumeFrom);
+        await _engine.load(streamUrl: value.streamUrl, startAt: _resumeFrom);
     }
   }
 
@@ -173,7 +174,9 @@ class PlayerNotifier extends _$PlayerNotifier {
     await _progressRepository.saveProgress(
       content: snapshot,
       progress: PlaybackProgress(
-        contentId: contentId,
+        // Grouped under the series for an episode, so history shows one row
+        // per show rather than one per episode watched.
+        contentId: snapshot.contentId,
         position: next.isCompleted ? next.duration : next.position,
         duration: next.duration,
         updatedAt: DateTime.now(),

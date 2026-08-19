@@ -78,6 +78,28 @@ class ContentDetailsDto {
   final List<SeasonDto> seasons;
 }
 
+/// A stream and its display fields, as they arrive from the source.
+class PlayableDto {
+  const PlayableDto({
+    required this.id,
+    required this.title,
+    required this.streamUrl,
+    required this.posterUrl,
+    required this.releaseYear,
+
+    /// The title this belongs to. Equal to [id] for a movie; the series
+    /// identifier for an episode, so history groups under the series.
+    required this.contentId,
+  });
+
+  final String id;
+  final String title;
+  final String streamUrl;
+  final String posterUrl;
+  final int releaseYear;
+  final String contentId;
+}
+
 /// Where catalogue data comes from.
 ///
 /// Implementations throw [AppException] on failure; the repository converts
@@ -89,6 +111,9 @@ abstract interface class ContentRemoteDataSource {
   Future<ContentModel> fetchContentById(String id);
 
   Future<ContentDetailsDto> fetchContentDetails(String id);
+
+  /// Resolves a title or episode identifier to a playable stream.
+  Future<PlayableDto> fetchPlayable(String id);
 
   Future<SearchResultsDto> searchContent({
     required String query,

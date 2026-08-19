@@ -33,12 +33,30 @@ abstract interface class AppLogger {
   });
 }
 
+/// Where a log line ends up. Matches `dart:developer`'s `log` signature.
+typedef LogSink =
+    void Function(
+      String message, {
+      String name,
+      int level,
+      Object? error,
+      StackTrace? stackTrace,
+    });
+
 /// Writes to the Dart developer log. Intended for development and staging.
 final class DeveloperAppLogger implements AppLogger {
-  const DeveloperAppLogger({this.minimumLevel = LogLevel.debug});
+  const DeveloperAppLogger({
+    this.minimumLevel = LogLevel.debug,
+    this.sink = developer.log,
+  });
 
   /// Messages below this level are dropped.
   final LogLevel minimumLevel;
+
+  /// Injectable so that severity filtering is observable in a test. The
+  /// developer log offers no interception hook, and a filter nothing can see
+  /// is a filter nothing can verify.
+  final LogSink sink;
 
   static const String _defaultName = 'StreamBox';
 
@@ -77,7 +95,7 @@ final class DeveloperAppLogger implements AppLogger {
   }) {
     if (level.value < minimumLevel.value) return;
 
-    developer.log(
+    sink(
       message,
       name: name ?? _defaultName,
       level: level.value,

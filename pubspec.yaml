@@ -41,6 +41,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  # End-to-end tests. Run on a device or emulator, not by `flutter test`.
+  integration_test:
+    sdk: flutter
+
   flutter_lints: ^6.0.0
 
   # Code generation

@@ -43,6 +43,16 @@ final class _FakeRemoteDataSource implements ContentRemoteDataSource {
   ContentDetailsDto? detailsResult;
   final List<String> detailsCalls = [];
 
+  PlayableDto? playableResult;
+  final List<String> playableCalls = [];
+
+  @override
+  Future<PlayableDto> fetchPlayable(String id) async {
+    playableCalls.add(id);
+    if (failure case final failure?) throw failure;
+    return playableResult!;
+  }
+
   @override
   Future<ContentDetailsDto> fetchContentDetails(String id) async {
     detailsCalls.add(id);
