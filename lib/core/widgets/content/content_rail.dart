@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:streambox/app/theme/app_spacing.dart';
+import 'package:streambox/core/layout/breakpoints.dart';
 import 'package:streambox/core/widgets/content/content_card.dart';
 import 'package:streambox/core/widgets/content/section_header.dart';
 
@@ -14,7 +15,7 @@ class ContentRail extends StatelessWidget {
     required this.itemCount,
     required this.itemBuilder,
     this.onSeeAll,
-    this.itemWidth = ContentCard.defaultWidth,
+    this.itemWidth,
     super.key,
   });
 
@@ -23,32 +24,45 @@ class ContentRail extends StatelessWidget {
   final Widget Function(BuildContext context, int index) itemBuilder;
   final VoidCallback? onSeeAll;
 
-  /// Drives the rail's height, so it does not depend on measuring children.
-  final double itemWidth;
+  /// Overrides the width derived from the available space. Drives the rail's
+  /// height too, so it does not depend on measuring children.
+  final double? itemWidth;
 
   @override
   Widget build(BuildContext context) {
     if (itemCount == 0) return const SizedBox.shrink();
 
+    return LayoutBuilder(builder: _build);
+  }
+
+  Widget _build(BuildContext context, BoxConstraints constraints) {
+    // Sized from the width the rail actually has rather than the window, so a
+    // rail in a narrow panel still lays out sensibly.
+    final size = LayoutSize.fromWidth(constraints.maxWidth);
+    final width = itemWidth ?? Breakpoints.cardWidth(size);
+    final gutter = Breakpoints.gutter(size);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: title, onSeeAll: onSeeAll),
+        SectionHeader(title: title, onSeeAll: onSeeAll, gutter: gutter),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: _railHeight(context),
+          height: _railHeight(context, width),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.pageGutter,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: gutter),
             // Keep one screen-width of cards warm on either side so a flick
             // does not reveal placeholders.
-            scrollCacheExtent: ScrollCacheExtent.pixels(itemWidth * 3),
+            scrollCacheExtent: ScrollCacheExtent.pixels(width * 3),
             itemCount: itemCount,
             separatorBuilder: (context, index) =>
                 const SizedBox(width: AppSpacing.sm),
-            itemBuilder: itemBuilder,
+            // Each card gets its own layer, so scrolling the rail does not
+            // force every sibling to repaint with it.
+            itemBuilder: (context, index) => RepaintBoundary(
+              child: SizedBox(width: width, child: itemBuilder(context, index)),
+            ),
           ),
         ),
       ],
@@ -59,8 +73,8 @@ class ContentRail extends StatelessWidget {
   ///
   /// Derived from the live text theme rather than a fixed constant: a change
   /// to the type scale would otherwise silently clip every card in the app.
-  double _railHeight(BuildContext context) {
-    final posterHeight = itemWidth / ContentCard.posterAspectRatio;
+  double _railHeight(BuildContext context, double width) {
+    final posterHeight = width / ContentCard.posterAspectRatio;
 
     return posterHeight + AppSpacing.xs + _labelBlockHeight(context);
   }

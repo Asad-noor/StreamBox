@@ -15,6 +15,7 @@ class ContentImage extends StatelessWidget {
     this.width,
     this.height,
     this.semanticLabel,
+    this.decodeWidth,
     super.key,
   });
 
@@ -27,31 +28,55 @@ class ContentImage extends StatelessWidget {
   final double? height;
   final String? semanticLabel;
 
+  /// Logical width the image will be drawn at.
+  ///
+  /// Supplied so the decoder can downsample rather than holding a full-size
+  /// bitmap in memory: a 400x600 poster drawn into a 132dp card otherwise
+  /// costs roughly ten times the memory it needs, and a rail holds many of
+  /// them. Null falls back to measuring the box the image is given.
+  final double? decodeWidth;
+
   @override
   Widget build(BuildContext context) {
-    final image = switch (url) {
-      final String url when url.isNotEmpty => CachedNetworkImage(
-        imageUrl: url,
-        fit: fit,
-        width: width,
-        height: height,
-        fadeInDuration: AppDurations.medium,
-        fadeInCurve: AppDurations.enter,
-        placeholder: (context, _) => const _ImagePlaceholder(),
-        errorWidget: (context, _, _) =>
-            const _ImagePlaceholder(icon: Icons.broken_image_outlined),
-      ),
-      _ => const _ImagePlaceholder(),
-    };
-
     // Artwork is decorative when it sits behind a visible title, so the label
     // is opt-in rather than a guessed alt text on every poster.
     return Semantics(
       label: semanticLabel,
       image: true,
       excludeSemantics: true,
-      child: image,
+      child: LayoutBuilder(builder: _image),
     );
+  }
+
+  Widget _image(BuildContext context, BoxConstraints constraints) {
+    final url = this.url;
+    if (url == null || url.isEmpty) return const _ImagePlaceholder();
+
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: fit,
+      width: width,
+      height: height,
+      memCacheWidth: _decodeWidthPixels(context, constraints),
+      fadeInDuration: AppDurations.medium,
+      fadeInCurve: AppDurations.enter,
+      placeholder: (context, _) => const _ImagePlaceholder(),
+      errorWidget: (context, _, _) =>
+          const _ImagePlaceholder(icon: Icons.broken_image_outlined),
+    );
+  }
+
+  /// The decode width in device pixels, or null when the box is unbounded and
+  /// there is nothing reliable to measure.
+  int? _decodeWidthPixels(BuildContext context, BoxConstraints constraints) {
+    final logicalWidth =
+        decodeWidth ??
+        width ??
+        (constraints.hasBoundedWidth ? constraints.maxWidth : null);
+
+    if (logicalWidth == null || logicalWidth <= 0) return null;
+
+    return (logicalWidth * MediaQuery.devicePixelRatioOf(context)).round();
   }
 }
 

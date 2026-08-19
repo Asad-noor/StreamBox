@@ -17,6 +17,7 @@ class ContentCard extends StatefulWidget {
     this.progress,
     this.onTap,
     this.width = defaultWidth,
+    this.heroId,
     super.key,
   });
 
@@ -31,6 +32,12 @@ class ContentCard extends StatefulWidget {
   /// itself, so the two cannot drift apart.
   static const int maxTitleLines = 2;
 
+  /// Tag shared with the details screen so a poster flies between the two.
+  ///
+  /// Namespaced because the same title can appear in several rails at once,
+  /// and duplicate hero tags in one route throw.
+  static String heroTag(String contentId) => 'poster-$contentId';
+
   final String title;
   final String? imageUrl;
   final String? subtitle;
@@ -40,6 +47,10 @@ class ContentCard extends StatefulWidget {
 
   final VoidCallback? onTap;
   final double width;
+
+  /// Opts this card into the shared poster transition. Null leaves it out,
+  /// which is what a rail rendering the same title twice needs.
+  final String? heroId;
 
   @override
   State<ContentCard> createState() => _ContentCardState();
@@ -76,7 +87,11 @@ class _ContentCardState extends State<ContentCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _Poster(imageUrl: widget.imageUrl, progress: widget.progress),
+                _Poster(
+                  imageUrl: widget.imageUrl,
+                  progress: widget.progress,
+                  heroId: widget.heroId,
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   widget.title,
@@ -114,13 +129,26 @@ class _ContentCardState extends State<ContentCard> {
 }
 
 class _Poster extends StatelessWidget {
-  const _Poster({required this.imageUrl, required this.progress});
+  const _Poster({
+    required this.imageUrl,
+    required this.progress,
+    required this.heroId,
+  });
 
   final String? imageUrl;
   final double? progress;
+  final String? heroId;
 
   @override
   Widget build(BuildContext context) {
+    final poster = _poster(context);
+
+    return heroId == null
+        ? poster
+        : Hero(tag: ContentCard.heroTag(heroId!), child: poster);
+  }
+
+  Widget _poster(BuildContext context) {
     return ClipRRect(
       borderRadius: AppRadius.allMd,
       child: AspectRatio(

@@ -3,6 +3,7 @@ import 'package:streambox/app/theme/app_colors.dart';
 import 'package:streambox/app/theme/app_radius.dart';
 import 'package:streambox/app/theme/app_spacing.dart';
 import 'package:streambox/core/error/app_exception.dart';
+import 'package:streambox/core/layout/breakpoints.dart';
 import 'package:streambox/core/widgets/content/content_card.dart';
 import 'package:streambox/core/widgets/content/content_rail.dart';
 import 'package:streambox/core/widgets/content/hero_banner.dart';
@@ -37,6 +38,7 @@ class DesignGalleryPage extends StatelessWidget {
           _Section(title: 'Loading', child: ContentRailSkeleton()),
           _Section(title: 'Empty', child: _EmptySample()),
           _Section(title: 'Errors', child: _ErrorSample()),
+          _Section(title: 'Layout', child: _LayoutSample()),
         ],
       ),
     );
@@ -269,4 +271,36 @@ class _ErrorSample extends StatelessWidget {
   );
 
   static void _noop() {}
+}
+
+/// Reports which layout class the current window falls into, so the
+/// breakpoints can be checked by resizing rather than by reading the source.
+class _LayoutSample extends StatelessWidget {
+  const _LayoutSample();
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final size = LayoutSize.fromWidth(constraints.maxWidth);
+
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: Breakpoints.gutter(size)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${constraints.maxWidth.round()}dp - ${size.name}',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: AppSpacing.xxs),
+            Text(
+              'card ${Breakpoints.cardWidth(size).round()}dp - '
+              'gutter ${Breakpoints.gutter(size).round()}dp',
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }

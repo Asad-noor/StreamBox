@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:streambox/app/theme/app_colors.dart';
 import 'package:streambox/app/theme/app_radius.dart';
 import 'package:streambox/app/theme/app_spacing.dart';
+import 'package:streambox/core/widgets/content/content_card.dart';
 import 'package:streambox/core/widgets/content/content_image.dart';
 import 'package:streambox/core/widgets/content/metadata_row.dart';
 import 'package:streambox/features/catalog/domain/entities/content_details.dart';
@@ -82,13 +83,19 @@ class _TitleBlock extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: AppRadius.allSm,
-          child: SizedBox(
-            width: DetailsHeader.posterWidth,
-            child: AspectRatio(
-              aspectRatio: 2 / 3,
-              child: ContentImage(url: content.posterUrl),
+        Hero(
+          tag: ContentCard.heroTag(content.id),
+          child: ClipRRect(
+            borderRadius: AppRadius.allSm,
+            child: SizedBox(
+              width: DetailsHeader.posterWidth,
+              child: AspectRatio(
+                aspectRatio: 2 / 3,
+                child: ContentImage(
+                  url: content.posterUrl,
+                  decodeWidth: DetailsHeader.posterWidth,
+                ),
+              ),
             ),
           ),
         ),

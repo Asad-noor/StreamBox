@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:streambox/app/theme/app_spacing.dart';
 import 'package:streambox/core/error/app_exception.dart';
+import 'package:streambox/core/layout/breakpoints.dart';
 import 'package:streambox/features/catalog/domain/entities/content.dart';
 import 'package:streambox/features/catalog/domain/entities/search_results.dart';
 import 'package:streambox/features/search/presentation/widgets/search_result_tile.dart';
@@ -67,18 +68,20 @@ class _SearchResultsListState extends State<SearchResultsList> {
   Widget build(BuildContext context) {
     final items = widget.results.items;
 
-    return ListView.builder(
-      controller: _controller,
-      padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-      itemCount: items.length + 1,
-      itemBuilder: (context, index) {
-        if (index == items.length) return _footer(context);
+    return ReadableWidth(
+      child: ListView.builder(
+        controller: _controller,
+        padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+        itemCount: items.length + 1,
+        itemBuilder: (context, index) {
+          if (index == items.length) return _footer(context);
 
-        return SearchResultTile(
-          content: items[index],
-          onTap: () => widget.onContentTap(items[index]),
-        );
-      },
+          return SearchResultTile(
+            content: items[index],
+            onTap: () => widget.onContentTap(items[index]),
+          );
+        },
+      ),
     );
   }
 

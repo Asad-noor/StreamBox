@@ -11,13 +11,17 @@ abstract final class AppColors {
   // ---------------------------------------------------------------------------
 
   /// Primary action, active navigation, progress, focus.
-  static const Color red = Color(0xFFFF2D46);
+  ///
+  /// Chosen so that white text on it clears WCAG AA for normal text (5.0:1).
+  /// A brighter red looks better in isolation but fails at 3.7:1, which makes
+  /// every filled button label non-compliant.
+  static const Color red = Color(0xFFD91E36);
 
   /// Pressed and hovered states of [red].
-  static const Color redPressed = Color(0xFFD10D22);
+  static const Color redPressed = Color(0xFFB01528);
 
   /// Very low-opacity red for tinted surfaces and glows.
-  static const Color redSubtle = Color(0x1AFF2D46);
+  static const Color redSubtle = Color(0x1AD91E36);
 
   // ---------------------------------------------------------------------------
   // Surfaces
@@ -42,7 +46,14 @@ abstract final class AppColors {
 
   static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFFA1A1AA);
-  static const Color textTertiary = Color(0xFF71717A);
+
+  /// Captions and metadata.
+  ///
+  /// Light enough to clear WCAG AA against [surfaceElevated], the darkest
+  /// surface it appears on. The obvious darker grey reads better as "muted"
+  /// but lands at 3.5:1, which fails for text below 18pt — and this token is
+  /// used almost exclusively for small text.
+  static const Color textTertiary = Color(0xFF8A8A94);
 
   /// Text and icons drawn on top of [red].
   static const Color onRed = Color(0xFFFFFFFF);
@@ -58,7 +69,8 @@ abstract final class AppColors {
   // Status
   // ---------------------------------------------------------------------------
 
-  static const Color error = Color(0xFFFF4D4F);
+  /// Also used as a button background, so white on it must clear AA (4.7:1).
+  static const Color error = Color(0xFFD93036);
   static const Color success = Color(0xFF22C55E);
   static const Color warning = Color(0xFFF59E0B);
 

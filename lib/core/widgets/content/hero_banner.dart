@@ -48,7 +48,7 @@ class HeroBanner extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              ContentImage(url: backdropUrl),
+              ContentImage(url: backdropUrl, decodeWidth: constraints.maxWidth),
               const _Scrim(),
               Align(
                 alignment: Alignment.bottomCenter,
@@ -119,11 +119,14 @@ class _Details extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.displaySmall,
+          Semantics(
+            header: true,
+            child: Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.displaySmall,
+            ),
           ),
           if (metadata.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),

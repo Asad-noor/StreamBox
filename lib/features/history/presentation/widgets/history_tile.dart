@@ -40,70 +40,77 @@ class HistoryTile extends StatelessWidget {
           ),
         ),
       ),
-      child: InkWell(
-        onTap: onResume,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.pageGutter,
-            vertical: AppSpacing.xs,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: AppRadius.allSm,
-                child: SizedBox(
-                  width: thumbnailWidth,
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ContentImage(url: entry.content.posterUrl),
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: LinearProgressIndicator(
-                            value: progress.fraction,
-                            minHeight: 3,
-                            backgroundColor: AppColors.surfaceElevated,
-                            valueColor: const AlwaysStoppedAnimation(
-                              AppColors.red,
+      child: Semantics(
+        button: true,
+        label: progress.isCompleted
+            ? '${entry.content.title}, watched'
+            : '${entry.content.title}, '
+                  '${(progress.fraction * 100).round()} percent watched',
+        child: InkWell(
+          onTap: onResume,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.pageGutter,
+              vertical: AppSpacing.xs,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: AppRadius.allSm,
+                  child: SizedBox(
+                    width: thumbnailWidth,
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ContentImage(url: entry.content.posterUrl),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: LinearProgressIndicator(
+                              value: progress.fraction,
+                              minHeight: 3,
+                              backgroundColor: AppColors.surfaceElevated,
+                              valueColor: const AlwaysStoppedAnimation(
+                                AppColors.red,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.content.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      progress.isCompleted
-                          ? 'Watched'
-                          : '${formatPlaybackTime(progress.position)} of '
-                                '${formatPlaybackTime(progress.duration)}',
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ],
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.content.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        progress.isCompleted
+                            ? 'Watched'
+                            : '${formatPlaybackTime(progress.position)} of '
+                                  '${formatPlaybackTime(progress.duration)}',
+                        style: theme.textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded),
-                tooltip: 'Remove ${entry.content.title} from history',
-              ),
-            ],
+                IconButton(
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Remove ${entry.content.title} from history',
+                ),
+              ],
+            ),
           ),
         ),
       ),

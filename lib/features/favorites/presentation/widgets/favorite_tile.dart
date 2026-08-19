@@ -32,50 +32,54 @@ class FavoriteTile extends StatelessWidget {
       direction: DismissDirection.endToStart,
       onDismissed: (_) => onRemove(),
       background: const _RemoveBackground(),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.pageGutter,
-            vertical: AppSpacing.xs,
-          ),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: AppRadius.allSm,
-                child: SizedBox(
-                  width: thumbnailWidth,
-                  child: AspectRatio(
-                    aspectRatio: 2 / 3,
-                    child: ContentImage(url: content.posterUrl),
+      child: Semantics(
+        button: true,
+        label: '${content.title}, ${content.releaseYear}',
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.pageGutter,
+              vertical: AppSpacing.xs,
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: AppRadius.allSm,
+                  child: SizedBox(
+                    width: thumbnailWidth,
+                    child: AspectRatio(
+                      aspectRatio: 2 / 3,
+                      child: ContentImage(url: content.posterUrl),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      content.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      '${content.releaseYear}',
-                      style: theme.textTheme.labelSmall,
-                    ),
-                  ],
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        content.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        '${content.releaseYear}',
+                        style: theme.textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                onPressed: onRemove,
-                icon: const Icon(Icons.close_rounded),
-                tooltip: 'Remove ${content.title} from my list',
-              ),
-            ],
+                IconButton(
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Remove ${content.title} from my list',
+                ),
+              ],
+            ),
           ),
         ),
       ),

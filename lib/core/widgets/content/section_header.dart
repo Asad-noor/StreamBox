@@ -7,6 +7,7 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     this.onSeeAll,
     this.seeAllLabel = 'See all',
+    this.gutter = AppSpacing.pageGutter,
     super.key,
   });
 
@@ -14,12 +15,15 @@ class SectionHeader extends StatelessWidget {
   final VoidCallback? onSeeAll;
   final String seeAllLabel;
 
+  /// Matched to the rail beneath it so the title and the first card align.
+  final double gutter;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageGutter),
+      padding: EdgeInsets.symmetric(horizontal: gutter),
       child: Row(
         children: [
           Expanded(

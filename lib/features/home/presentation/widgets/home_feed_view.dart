@@ -102,6 +102,11 @@ class _Rail extends StatelessWidget {
     final isContinueWatching =
         section.kind == ContentSectionKind.continueWatching;
 
+    // Only one rail opts into the shared poster transition: the same title
+    // routinely appears in several rails, and duplicate hero tags on one route
+    // throw at runtime.
+    final ownsHero = section.kind == ContentSectionKind.trending;
+
     return ContentRail(
       title: section.title,
       itemCount: section.items.length,
@@ -116,6 +121,7 @@ class _Rail extends StatelessWidget {
               : '${content.releaseYear}',
           // The resume bar is only meaningful on the Continue Watching rail.
           progress: isContinueWatching ? resumeFractions[content.id] : null,
+          heroId: ownsHero ? content.id : null,
           onTap: () => onContentTap(content),
         );
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:streambox/app/theme/app_spacing.dart';
+import 'package:streambox/core/layout/breakpoints.dart';
 import 'package:streambox/core/widgets/content/section_header.dart';
 import 'package:streambox/features/catalog/domain/entities/content_details.dart';
 import 'package:streambox/features/catalog/domain/entities/episode.dart';
@@ -43,7 +44,11 @@ class DetailsView extends StatelessWidget {
         SliverToBoxAdapter(
           child: DetailsHeader(details: details, onWatch: onWatch),
         ),
-        SliverToBoxAdapter(child: _Synopsis(text: details.content.synopsis)),
+        SliverToBoxAdapter(
+          child: ReadableWidth(
+            child: _Synopsis(text: details.content.synopsis),
+          ),
+        ),
         if (details.hasSeasons) ...[
           const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
           SliverToBoxAdapter(
