@@ -55,17 +55,21 @@ flutter drive --driver=test_driver/screenshot_driver.dart \
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    UI["Presentation<br/>pages · widgets · Riverpod notifiers"]
-    DOM["Domain<br/>entities · repository contracts · use cases"]
-    DATA["Data<br/>models · data sources · repository impls"]
-    EXT["Dio · Drift · video_player"]
-
-    UI --> DOM
-    DATA -- implements --> DOM
-    UI -. providers .-> DATA
-    DATA --> EXT
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Presentation      pages · widgets · Riverpod notifiers      │
+└───────────────────────────┬──────────────────────────────────┘
+                            │ depends on
+┌───────────────────────────▼──────────────────────────────────┐
+│  Domain            entities · contracts · use cases          │
+│                    plain Dart — no Flutter, no packages      │
+└───────────────────────────▲──────────────────────────────────┘
+                            │ implements
+┌───────────────────────────┴──────────────────────────────────┐
+│  Data              models · data sources · repository impls  │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+                 Dio · Drift · video_player
 ```
 
 The domain layer imports neither Flutter nor any package — it is plain Dart,
